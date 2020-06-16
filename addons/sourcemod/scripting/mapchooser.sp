@@ -29,6 +29,7 @@
  * or <http://www.sourcemod.net/license.php>.
  *
  * Version: $Id$
+ * Original source - http://www.sourcemod.net/
  */
  
 #pragma semicolon 1
@@ -44,8 +45,8 @@ public Plugin myinfo =
 	name = "SurfTimer MapChooser",
 	author = "AlliedModders LLC & SurfTimer Contributors",
 	description = "Automated Map Voting",
-	version = "1.2",
-	url = "http://www.sourcemod.net/"
+	version = "1.4",
+	url = "https://github.com/qawery-just-sad/surftimer-mapchooser"
 };
 
 /* Valve ConVars */
@@ -1244,7 +1245,25 @@ public void db_setupDatabase()
 
 	if (g_hDb == null)
 		SetFailState("[Mapchooser] Unable to connect to database (%s)", szError);
-	
+
+	char szIdent[8];
+	SQL_ReadDriver(g_hDb, szIdent, 8);
+
+	if (strcmp(szIdent, "mysql", false) == 0)
+	{
+		// https://github.com/nikooo777/ckSurf/pull/58 - eeeee that is an issue in a half
+		SQL_FastQuery(g_hDb, "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
+	}
+	else if (strcmp(szIdent, "sqlite", false) == 0)
+	{
+		SetFailState("[Mapchooser] Sorry SQLite is not supported.");
+		return;
+	}
+	else
+	{
+		SetFailState("[Mapchooser] Invalid database type");
+		return;
+	}
 	return;
 }
 
