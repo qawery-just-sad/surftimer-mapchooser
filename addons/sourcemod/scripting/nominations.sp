@@ -59,6 +59,7 @@ ArrayList g_MapListTier = null;
 #define MAPSTATUS_EXCLUDE_CURRENT (1<<2)
 #define MAPSTATUS_EXCLUDE_PREVIOUS (1<<3)
 #define MAPSTATUS_EXCLUDE_NOMINATED (1<<4)
+#define MAPSTATUS_EXCLUDE_NOTFOUND (1<<5)
 
 StringMap g_mapTrie = null;
 
@@ -335,6 +336,11 @@ void BuildMapMenu()
 				status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_PREVIOUS;
 			}
 		}
+
+		if (FindMap(map, map, sizeof(map)) == FindMap_NotFound)
+		{
+			status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOTFOUND;
+		}
 		
 		g_MapMenu.AddItem(map, displayName);
 		g_mapTrie.SetValue(map, status);
@@ -437,6 +443,12 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 				if ((status & MAPSTATUS_EXCLUDE_NOMINATED) == MAPSTATUS_EXCLUDE_NOMINATED)
 				{
 					Format(display, sizeof(display), "%s (%T)", displayName, "Nominated", param1);
+					return RedrawMenuItem(display);
+				}
+
+				if ((status & MAPSTATUS_EXCLUDE_NOTFOUND) == MAPSTATUS_EXCLUDE_NOTFOUND)
+				{
+					Format(display, sizeof(display), "%s (%T)", displayName, "Error 404", param1);
 					return RedrawMenuItem(display);
 				}
 			}
