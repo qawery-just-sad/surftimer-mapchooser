@@ -9,7 +9,7 @@ This is a edit of the default SourceMod mapchooser and nomination plugin, it pro
 * Sourcemod 1.8+
 * MySQL 5.7 / 8+ / MariaDB supported
 * SurfTimer from [Olokos](https://github.com/surftimer/Surftimer-olokos)
-<sup>I mean it works with any fork as long as the layout of ck_maptier and ck_zones are the same as in [Fluffys](https://github.com/fluffyst/Surftimer) archived repo :wink:</sup>
+<br><sup>I mean it works with any fork as long as the layout of ck_maptier and ck_zones are the same as in [Fluffys](https://github.com/fluffyst/Surftimer) archived repo :wink:</sup>
 
 **Compilation Requirements (Includes):**
 
