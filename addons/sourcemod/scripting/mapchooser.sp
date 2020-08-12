@@ -155,7 +155,7 @@ public void OnPluginStart()
 	g_Cvar_RunOffPercent = AutoExecConfig_CreateConVar("sm_mapvote_runoffpercent", "50", "If winning choice has less than this percent of votes, hold a runoff", _, true, 0.0, true, 100.0);
 	
 	// KP Surf ConVars
-	g_Cvar_ServerTier = AutoExecConfig_CreateConVar("sm_server_tier", "1.0", "Specifies the tier range for maps, for example if you want a tier 1-3 server make it 1.3, a tier 2 only server would be 2.0, etc", 0, true, 1.0, true, 8.0);
+	g_Cvar_ServerTier = AutoExecConfig_CreateConVar("sm_server_tier", "0", "Specifies the tier range for maps, for example if you want a tier 1-3 server make it 1.3, a tier 2 only server would be 2.0, etc", 0, true, 0, true, 8.0);
 	
 	RegAdminCmd("sm_mapvote", Command_Mapvote, ADMFLAG_CHANGEMAP, "sm_mapvote - Forces MapChooser to attempt to run a map vote now.");
 	RegAdminCmd("sm_setnextmap", Command_SetNextmap, ADMFLAG_CHANGEMAP, "sm_setnextmap <map>");
