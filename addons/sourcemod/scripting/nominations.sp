@@ -537,7 +537,7 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 				g_MapListTier.PushString(szValue);
 			}
 			else
-				LogError("Error 404: Map %s was found in database but not on server! Please delete entry in database or add the map to server!", szMapName)
+				LogError("Error 404: Map %s was found in database but not on server! Please delete entry in database or add the map to server!", szMapName);
 		}
 
 		BuildMapMenu();
