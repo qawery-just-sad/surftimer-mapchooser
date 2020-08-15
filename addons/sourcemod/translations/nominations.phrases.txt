@@ -70,9 +70,4 @@
 	{
 		"en"			"Nominated"
 	}
-
-	"Error 404"
-	{
-		"en"			"Error 404"
-	}
 }
