@@ -42,7 +42,7 @@ jobs:
         git clone https://github.com/c0rp3n/colorlib-gen.git $TOOLS_PATH/gen
 
     - name: Taste the RAINBOW!
-        run: |
+      run: |
         python3 -m pip install --upgrade pip setuptools wheel
         cd $TOOLS_PATH/gen/
         pip install -r ./requirements.txt
