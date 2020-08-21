@@ -1,0 +1,50 @@
+"Phrases"
+{
+    "VIP Feature"
+    {
+        "#format"       "{1:s}"
+        "en"            "{1} This is a VIP feature."
+    }
+
+    "Vote In Progress"
+    {
+        "#format"       "{1:s}"
+        "en"            "{1} Please wait until the current vote has finished."
+    }
+
+    "Max Extends"
+    {
+        "#format"       "{1:s}"
+        "en"            "{1} Max amount of extends for this map has been reached."
+    }
+
+    "Not Allowed Yet"
+    {
+        "#format"       "{1:s}"
+        "en"            "{1} Vote Extend is not allowed yet."
+    }
+
+    "Alredy Voted"
+    {
+        "#format"       "{1:s}"
+        "en"            "{1} You have already used your vote to extend this map."
+    }
+
+    "Vote Start"
+    {
+        "#format"       "{1:s},{2:s}"
+        "en"            "{1} Vote to Extend started by {2}"
+    }
+
+    "Vote Success"
+    {
+        "#format"       "{1:s},{2:i},{3:i}"
+        "en"            "{1} Vote to Extend succeeded - Votes Yes: {2} | Votes No: {3}"
+    }
+
+    "Vote Fail"
+    {
+        "#format"       "{1:s},{2:i},{3:i}"
+        "en"            "{1} Vote to Extend failed - Votes Yes: {2} | Votes No: {3}"
+    }
+}

@@ -7,19 +7,20 @@
 
 	"Nextmap Voting Started"
 	{
-		"en"			"Voting for next map has started."
+		"#format"		"{1:s}"
+		"en"			"{1} Voting for next map has started."
 	}	
 
 	"Nextmap Voting Finished"
 	{
-		"#format"		"{1:s},{2:i},{3:i}"
-		"en"			"Map voting has finished. The next map will be {1}. (Received {2}%% of {3} votes)"
+		"#format"		"{1:s},{2:s},{3:i},{4:i}"
+		"en"			"{1} Map voting has finished. The next map will be {2}. (Received {3}%% of {4} votes)"
 	}
 
 	"Current Map Extended"
 	{
-		"#format"		"{1:i},{2:i}"
-		"en"			"The current map has been extended. (Received {1}%% of {2} votes)"
+		"#format"		"{1:s},{2:i},{3:i}"
+		"en"			"{1} The current map has been extended. (Received {2}%% of {3} votes)"
 	}
 	
 	"Extend Map"
@@ -34,8 +35,8 @@
 
 	"Current Map Stays"
 	{
-		"#format"		"{1:i},{2:i}"
-		"en"			"Current map continues! The Vote has spoken! (Received {1}%% of {2} votes)"
+		"#format"		"{1:s},{2:i},{3:i}"
+		"en"			"{1} Current map continues! The Vote has spoken! (Received {2}%% of {3} votes)"
 	}
 
 	"Changed Next Map"
@@ -46,7 +47,19 @@
 
 	"Starting Runoff"
 	{
-		"#format"		"{1:.0f},{2:s},{3:.0f},{4:s},{5:.0f}"
-		"en"			"No map got over {1}%% votes ({2} [{3}%%] & {4} [{5}%%]), starting runoff vote"
+		"#format"		"{1:s}.{2:.0f},{3:s},{4:.0f},{5:s},{6:.0f}"
+		"en"			"{1} No map got over {2}%% votes ({3} [{4}%%] & {5} [{6}%%]), starting runoff vote"
+	}
+
+	"Map was not found"
+	{
+		"#format"		"{1:s},{2:s}"
+		"en"			"{1} Map {2} was not found."
+	}
+
+	"Usage_setnm"
+	{
+		"#format"		"{1:s}"
+		"en"			"{1} Usage: sm_setnextmap <map>"
 	}
 }
