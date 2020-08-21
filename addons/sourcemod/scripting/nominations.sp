@@ -101,13 +101,13 @@ public void OnPluginStart()
 	RegAdminCmd("sm_nominate_addmap", Command_Addmap, ADMFLAG_CHANGEMAP, "sm_nominate_addmap <mapname> - Forces a map to be on the next mapvote.");
 	
 	g_mapTrie = new StringMap();
-
-	g_ChatPrefix = FindConVar("ck_chat_prefix");
-	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
 }
 
 public void OnConfigsExecuted()
 {
+	g_ChatPrefix = FindConVar("ck_chat_prefix");
+	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
+	
 	SelectMapList();
 }
 

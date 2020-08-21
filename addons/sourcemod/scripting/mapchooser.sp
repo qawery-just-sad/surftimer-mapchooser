@@ -172,10 +172,6 @@ public void OnPluginStart()
 	g_Cvar_Fraglimit = FindConVar("mp_fraglimit");
 	g_Cvar_Bonusroundtime = FindConVar("mp_bonusroundtime");
 
-	g_ChatPrefix = FindConVar("ck_chat_prefix");
-	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
-	
-
 	if (g_Cvar_Winlimit || g_Cvar_Maxrounds)
 	{
 		char folder[64];
@@ -249,6 +245,9 @@ public void OnConfigsExecuted()
 	// 		LogError("Unable to create a valid map list.");
 	// 	}
 	// }
+
+	g_ChatPrefix = FindConVar("ck_chat_prefix");
+	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
 
 	SelectMapList();
 	

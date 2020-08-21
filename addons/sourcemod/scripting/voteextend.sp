@@ -47,9 +47,6 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_voteextend", Command_VoteExtend, "SurfTimer | Vote to extend the map");
 	RegConsoleCmd("sm_extend", Command_VoteExtend, "SurfTimer | Vote to extend the map");
 
-	g_ChatPrefix = FindConVar("ck_chat_prefix");
-	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
-
 	AutoExecConfig_SetCreateDirectory(true);
 	AutoExecConfig_SetCreateFile(true);
 	AutoExecConfig_SetFile("vote-extend");
@@ -81,6 +78,9 @@ public void OnClientPostAdminCheck(int client)
 
 public void OnConfigsExecuted()
 {
+	g_ChatPrefix = FindConVar("ck_chat_prefix");
+	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
+	
 	CreateTimer(g_fInitialVoteDelay.FloatValue, Timer_Delay, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 

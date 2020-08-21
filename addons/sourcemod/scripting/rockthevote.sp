@@ -93,9 +93,6 @@ public void OnPluginStart()
 	AutoExecConfig_ExecuteFile();
 	AutoExecConfig_CleanFile();
 
-	g_ChatPrefix = FindConVar("ck_chat_prefix");
-	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
-
 	OnMapEnd();
 
 	/* Handle late load */
@@ -119,6 +116,9 @@ public void OnMapEnd()
 
 public void OnConfigsExecuted()
 {
+	g_ChatPrefix = FindConVar("ck_chat_prefix");
+	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
+	
 	CreateTimer(g_Cvar_InitialDelay.FloatValue, Timer_DelayRTV, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
