@@ -14,7 +14,7 @@
 	
 	"Already Voted"
 	{
- 		"#format"		"{1:s}{2:d},{3:d}"
+ 		"#format"		"{1:s},{2:d},{3:d}"
 	 	"en"			"{1} You have already voted to Rock the Vote. ({2} votes, {3} required)"
 	}
 	
@@ -32,7 +32,7 @@
 
 	"Changing Maps"
 	{
-		"#format"		"{1:s}{2:s}"
+		"#format"		"{1:s},{2:s}"
 		"en"			"{1} Changing map to {2}! Rock the Vote has spoken!"
 	}
 

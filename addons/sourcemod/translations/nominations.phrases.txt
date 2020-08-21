@@ -14,7 +14,7 @@
 
 	"Map Inserted"
 	{
-		"#format"		"{1:s]{2:s}"
+		"#format"		"{1:s},{2:s}"
 		"en"			"{1} Map '{2}' added to the nominations list."
 	}
 	
