@@ -47,7 +47,7 @@
 
 	"Starting Runoff"
 	{
-		"#format"		"{1:s}.{2:.0f},{3:s},{4:.0f},{5:s},{6:.0f}"
+		"#format"		"{1:s},{2:.0f},{3:s},{4:.0f},{5:s},{6:.0f}"
 		"en"			"{1} No map got over {2}%% votes ({3} [{4}%%] & {5} [{6}%%]), starting runoff vote"
 	}
 
