@@ -3,7 +3,7 @@
 	"RTV Not Allowed"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1}Rock the Vote is not allowed yet."
+		"en"			"{1} Rock the Vote is not allowed yet."
 	}
 	
 	"RTV Started"
