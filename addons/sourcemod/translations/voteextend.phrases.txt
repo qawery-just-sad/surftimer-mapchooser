@@ -3,31 +3,31 @@
     "VIP Feature"
     {
         "#format"       "{1:s}"
-        "en"            "{1} This is a VIP feature."
+        "en"            "{1} This is a {gold}VIP{default} feature."
     }
 
     "Vote In Progress"
     {
         "#format"       "{1:s}"
-        "en"            "{1} Please wait until the current vote has finished."
+        "en"            "{1} {yellow}Please wait until the current vote has finished."
     }
 
     "Max Extends"
     {
         "#format"       "{1:s}"
-        "en"            "{1} Max amount of extends for this map has been reached."
+        "en"            "{1} {red}Max amount of extends for this map has been reached."
     }
 
     "Not Allowed Yet"
     {
         "#format"       "{1:s}"
-        "en"            "{1} Vote Extend is not allowed yet."
+        "en"            "{1} {red}Vote Extend is not allowed yet."
     }
 
     "Alredy Voted"
     {
         "#format"       "{1:s}"
-        "en"            "{1} You have already used your vote to extend this map."
+        "en"            "{1} {red}You have already used your vote to extend this map."
     }
 
     "Vote Start"
@@ -39,12 +39,12 @@
     "Vote Success"
     {
         "#format"       "{1:s},{2:i},{3:i}"
-        "en"            "{1} Vote to Extend succeeded - Votes Yes: {2} | Votes No: {3}"
+        "en"            "{1} {green}Vote to Extend succeeded {default}- Votes {green}Yes: {2} {default}| Votes {red}No: {3}"
     }
 
     "Vote Fail"
     {
         "#format"       "{1:s},{2:i},{3:i}"
-        "en"            "{1} Vote to Extend failed - Votes Yes: {2} | Votes No: {3}"
+        "en"            "{1} {red}Vote to Extend failed {default}- Votes {green}Yes: {2} {default}| Votes {red}No: {3}"
     }
 }

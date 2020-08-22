@@ -3,25 +3,25 @@
 	"RTV Not Allowed"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} Rock the Vote is not allowed yet."
+		"en"			"{1} {red}Rock the Vote is not allowed yet."
 	}
 	
 	"RTV Started"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} Rock the Vote has already started."
+		"en"			"{1} {yellow}Rock the Vote has already started."
 	}
 	
 	"Already Voted"
 	{
  		"#format"		"{1:s},{2:d},{3:d}"
-	 	"en"			"{1} You have already voted to Rock the Vote. ({2} votes, {3} required)"
+	 	"en"			"{1} {yellow}You have already voted to Rock the Vote. ({2} votes, {3} required)"
 	}
 	
 	"Minimal Players Not Met"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} The minimal number of players required has not been met."
+		"en"			"{1} {yellow}The minimal number of players required has not been met."
 	}
 	
 	"RTV Requested"
@@ -33,18 +33,18 @@
 	"Changing Maps"
 	{
 		"#format"		"{1:s},{2:s}"
-		"en"			"{1} Changing map to {2}! Rock the Vote has spoken!"
+		"en"			"{1} Changing map to {yellow}{2}{default}! Rock the Vote has spoken!"
 	}
 
 	"Rank Requirement"
 	{
 		"#format"		"{1:s},{2:i}"
-		"en"			"{1} You do not meet the rank {2} requirement!"
+		"en"			"{1} {red}You do not meet the rank {2} requirement!"
 	}
 
 	"Point Requirement"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} You do not meet the point requirement!"
+		"en"			"{1} {red}You do not meet the point requirement!"
 	}
 }

@@ -3,37 +3,37 @@
 	"Max Nominations"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} The maximum allowed nominations has been reached."
+		"en"			"{1} {red}The maximum allowed nominations has been reached."
 	}
 
 	"Map Already In Vote"
 	{
 		"#format"		"{1:s},{2:s}"
-		"en"			"{1} Map '{2}' already in the nominations list."
+		"en"			"{1} Map {yellow}'{2}' {default}already in the nominations list."
 	}
 
 	"Map Inserted"
 	{
 		"#format"		"{1:s},{2:s}"
-		"en"			"{1} Map '{2}' added to the nominations list."
+		"en"			"{1} Map {yellow}'{2}' {green}added{default} to the nominations list."
 	}
 	
 	"Map Already Nominated"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} The map you chose has already been nominated."
+		"en"			"{1} {yellow}The map you chose has already been nominated."
 	}
 	
 	"Map Nominated"
 	{
 		"#format"		"{1:s},{2:s},{3:s}"
-		"en"			"{1} {2} has nominated {3}."
+		"en"			"{1} {2} has nominated {yellow}{3}{default}."
 	}
 
 	"Map Nomination Changed"
 	{
 		"#format"		"{1:s},{2:s},{3:s}"
-		"en"			"{1} {2} has changed their nomination to {3}."
+		"en"			"{1} {2} has changed their nomination to {yellow}{3}{default}."
 	}
 	
 	"Nominate Title"
@@ -44,13 +44,13 @@
 	"Can't Nominate Current Map"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} The map you chose is the current map and cannot be nominated"
+		"en"			"{1} {red}The map you chose is the current map and cannot be nominated"
 	}
 
 	"Map in Exclude List"
 	{
 		"#format"		"{1:s}"
-		"en"			"{1} The map you chose was recently played and cannot be nominated"
+		"en"			"{1} {red}The map you chose was recently played and cannot be nominated"
 	}
 
 	"Current Map"
@@ -71,12 +71,12 @@
 	"Map was not found"
 	{
 		"#format"		"{1:s},{2:s}"
-		"en"			"{1} Map {2} was not found."
+		"en"			"{1} {red}Map {yellow}{2} {red}was not found."
 	}
 
 	"Usage_addmap"
 	{
 		"#foramt"		"{1:s}"
-		"en"			"{1} Usage: sm_nominate_addmap <mapname>"
+		"en"			"{1} {yellow}Usage: sm_nominate_addmap <mapname>"
 	}
 }
