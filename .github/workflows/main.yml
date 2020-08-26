@@ -2,7 +2,7 @@ name: Compile Check
 
 on:
   push:
-    branches: [ master, taste-the-rainbow ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
     
