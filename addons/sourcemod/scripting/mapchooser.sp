@@ -1297,7 +1297,7 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 {
 	if (hndl == null)
 	{
-		LogError("[Nominations] SQL Error (SelectMapListCallback): %s", error);
+		LogError("[Mapchooser] SQL Error (SelectMapListCallback): %s", error);
 		return;
 	}
 
