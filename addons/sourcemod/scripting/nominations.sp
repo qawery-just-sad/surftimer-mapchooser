@@ -86,9 +86,9 @@ Handle g_hDb = null;
 #define PERCENT 0x25
 
 //SQL Queries
-char sql_SelectMapListSpecific[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) AND tier = %s GROUP BY ck_zones.mapname ORDER BY tier ASC, mapname ASC";
-char sql_SelectMapListRange[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) AND tier >= %s AND tier <= %s GROUP BY ck_zones.mapname ORDER BY tier ASC, mapname ASC";
-char sql_SelectMapList[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) GROUP BY ck_zones.mapname ORDER BY tier ASC, mapname ASC";
+char sql_SelectMapListSpecific[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) AND tier = %s GROUP BY mapname, tier, bonus ORDER BY tier ASC, mapname ASC";
+char sql_SelectMapListRange[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) AND tier >= %s AND tier <= %s GROUP BY mapname, tier, bonus ORDER BY tier ASC, mapname ASC";
+char sql_SelectMapList[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) GROUP BY mapname, tier, bonus ORDER BY tier ASC, mapname ASC";
 
 public void OnPluginStart()
 {
@@ -525,12 +525,7 @@ public void db_setupDatabase()
 	char szIdent[8];
 	SQL_ReadDriver(g_hDb, szIdent, 8);
 
-	if (strcmp(szIdent, "mysql", false) == 0)
-	{
-		// https://github.com/nikooo777/ckSurf/pull/58 - eeeee that is an issue in a half || Also https://discordapp.com/channels/366959507764674560/379572504542445568/729723679541559336
-		SQL_FastQuery(g_hDb, "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
-	}
-	else
+	if (!StrEqual(szIdent, "mysql", false))
 	{
 		SetFailState("[Nominations] Invalid database type");
 		return;
