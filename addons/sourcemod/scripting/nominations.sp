@@ -32,6 +32,8 @@
 
 #include <sourcemod>
 #include <mapchooser>
+#include <autoexecconfig>
+#include <colorlib>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -41,13 +43,17 @@ public Plugin myinfo =
 	name = "SurfTimer Nominations",
 	author = "AlliedModders LLC & SurfTimer Contributors",
 	description = "Provides Map Nominations",
-	version = "1.2",
-	url = "http://www.sourcemod.net/"
+	version = "1.6",
+	url = "https://github.com/qawery-just-sad/surftimer-mapchooser"
 };
 
 ConVar g_Cvar_ExcludeOld;
 ConVar g_Cvar_ExcludeCurrent;
 ConVar g_Cvar_ServerTier;
+
+// Chat prefix
+char g_szChatPrefix[256];
+ConVar g_ChatPrefix = null;
 
 Menu g_MapMenu = null;
 
@@ -73,7 +79,6 @@ char sql_SelectMapList[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapnam
 
 public void OnPluginStart()
 {
-	LoadTranslations("common.phrases");
 	LoadTranslations("nominations.phrases");
 
 	db_setupDatabase();
@@ -81,22 +86,28 @@ public void OnPluginStart()
 	int arraySize = ByteCountToCells(PLATFORM_MAX_PATH);
 	g_MapList = new ArrayList(arraySize);
 	g_MapListTier = new ArrayList(arraySize);
-	
-	g_Cvar_ExcludeOld = CreateConVar("sm_nominate_excludeold", "1", "Specifies if the MapChooser excluded maps should also be excluded from Nominations", 0, true, 0.00, true, 1.0);
-	g_Cvar_ExcludeCurrent = CreateConVar("sm_nominate_excludecurrent", "1", "Specifies if the current map should be excluded from the Nominations list", 0, true, 0.00, true, 1.0);
 
+	AutoExecConfig_SetCreateDirectory(true);
+	AutoExecConfig_SetCreateFile(true);
+	AutoExecConfig_SetFile("nominations");
+	
+	g_Cvar_ExcludeOld = AutoExecConfig_CreateConVar("sm_nominate_excludeold", "1", "Specifies if the MapChooser excluded maps should also be excluded from Nominations", 0, true, 0.00, true, 1.0);
+	g_Cvar_ExcludeCurrent = AutoExecConfig_CreateConVar("sm_nominate_excludecurrent", "1", "Specifies if the current map should be excluded from the Nominations list", 0, true, 0.00, true, 1.0);
+
+	AutoExecConfig_ExecuteFile();
+	AutoExecConfig_CleanFile();
 	
 	RegConsoleCmd("sm_nominate", Command_Nominate);
-	
 	RegAdminCmd("sm_nominate_addmap", Command_Addmap, ADMFLAG_CHANGEMAP, "sm_nominate_addmap <mapname> - Forces a map to be on the next mapvote.");
 	
 	g_mapTrie = new StringMap();
-
-	AutoExecConfig(true, "nominations");
 }
 
 public void OnConfigsExecuted()
 {
+	g_ChatPrefix = FindConVar("ck_chat_prefix");
+	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
+	
 	SelectMapList();
 }
 
@@ -126,7 +137,7 @@ public Action Command_Addmap(int client, int args)
 {
 	if (args < 1)
 	{
-		ReplyToCommand(client, "[SM] Usage: sm_nominate_addmap <mapname>");
+		CReplyToCommand(client, "%t", "Usage_addmap", g_szChatPrefix);
 		return Plugin_Handled;
 	}
 	
@@ -137,7 +148,7 @@ public Action Command_Addmap(int client, int args)
 	if (FindMap(mapname, resolvedMap, sizeof(resolvedMap)) == FindMap_NotFound)
 	{
 		// We couldn't resolve the map entry to a filename, so...
-		ReplyToCommand(client, "%t", "Map was not found", mapname);
+		CReplyToCommand(client, "%t", "Map was not found", g_szChatPrefix, mapname);
 		return Plugin_Handled;		
 	}
 	
@@ -147,7 +158,7 @@ public Action Command_Addmap(int client, int args)
 	int status;
 	if (!g_mapTrie.GetValue(resolvedMap, status))
 	{
-		ReplyToCommand(client, "%t", "Map was not found", displayName);
+		CReplyToCommand(client, "%t", "Map was not found", g_szChatPrefix, displayName);
 		return Plugin_Handled;		
 	}
 
@@ -158,7 +169,7 @@ public Action Command_Addmap(int client, int args)
 	if (result > Nominate_Replaced)
 	{
 		/* We assume already in vote is the casue because the maplist does a Map Validity check and we forced, so it can't be full */
-		ReplyToCommand(client, "%t", "Map Already In Vote", displayName);
+		CReplyToCommand(client, "%t", "Map Already In Vote", g_szChatPrefix, displayName);
 		
 		return Plugin_Handled;	
 	}
@@ -167,7 +178,7 @@ public Action Command_Addmap(int client, int args)
 	g_mapTrie.SetValue(resolvedMap, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
 
 	
-	ReplyToCommand(client, "%t", "Map Inserted", displayName);
+	CReplyToCommand(client, "%t", "Map Inserted", g_szChatPrefix, displayName);
 	LogAction(client, -1, "\"%L\" inserted map \"%s\".", client, mapname);
 
 	return Plugin_Handled;		
@@ -209,7 +220,7 @@ public Action Command_Nominate(int client, int args)
 	if (FindMap(mapname, mapname, sizeof(mapname)) == FindMap_NotFound)
 	{
 		// We couldn't resolve the map entry to a filename, so...
-		ReplyToCommand(client, "%t", "Map was not found", mapname);
+		CReplyToCommand(client, "%t", "Map was not found", g_szChatPrefix, mapname);
 		return Plugin_Handled;		
 	}
 	
@@ -219,7 +230,7 @@ public Action Command_Nominate(int client, int args)
 	int status;
 	if (!g_mapTrie.GetValue(mapname, status))
 	{
-		ReplyToCommand(client, "%t", "Map was not found", displayName);
+		CReplyToCommand(client, "%t", "Map was not found", g_szChatPrefix, displayName);
 		return Plugin_Handled;		
 	}
 	
@@ -227,17 +238,17 @@ public Action Command_Nominate(int client, int args)
 	{
 		if ((status & MAPSTATUS_EXCLUDE_CURRENT) == MAPSTATUS_EXCLUDE_CURRENT)
 		{
-			ReplyToCommand(client, "[SM] %t", "Can't Nominate Current Map");
+			CReplyToCommand(client, "%t", "Can't Nominate Current Map", g_szChatPrefix);
 		}
 		
 		if ((status & MAPSTATUS_EXCLUDE_PREVIOUS) == MAPSTATUS_EXCLUDE_PREVIOUS)
 		{
-			ReplyToCommand(client, "[SM] %t", "Map in Exclude List");
+			CReplyToCommand(client, "%t", "Map in Exclude List", g_szChatPrefix);
 		}
 		
 		if ((status & MAPSTATUS_EXCLUDE_NOMINATED) == MAPSTATUS_EXCLUDE_NOMINATED)
 		{
-			ReplyToCommand(client, "[SM] %t", "Map Already Nominated");
+			CReplyToCommand(client, "%t", "Map Already Nominated", g_szChatPrefix);
 		}
 		
 		return Plugin_Handled;
@@ -251,11 +262,11 @@ public Action Command_Nominate(int client, int args)
 	{
 		if (result == Nominate_AlreadyInVote)
 		{
-			ReplyToCommand(client, "%t", "Map Already In Vote", displayName);
+			CReplyToCommand(client, "%t", "Map Already In Vote", g_szChatPrefix, displayName);
 		}
 		else
 		{
-			ReplyToCommand(client, "[SM] %t", "Map Already Nominated");
+			CReplyToCommand(client, "%t", "Map Already Nominated", g_szChatPrefix);
 		}
 		
 		return Plugin_Handled;	
@@ -267,7 +278,7 @@ public Action Command_Nominate(int client, int args)
 	
 	char name[MAX_NAME_LENGTH];
 	GetClientName(client, name, sizeof(name));
-	PrintToChatAll("[SM] %t", "Map Nominated", name, displayName);
+	CPrintToChatAll("%t", "Map Nominated", g_szChatPrefix, name, displayName);
 	
 	return Plugin_Handled;
 }
@@ -363,12 +374,12 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 			/* Don't need to check for InvalidMap because the menu did that already */
 			if (result == Nominate_AlreadyInVote)
 			{
-				PrintToChat(param1, "[SM] %t", "Map Already Nominated");
+				CPrintToChat(param1, "%t", "Map Already Nominated", g_szChatPrefix);
 				return 0;
 			}
 			else if (result == Nominate_VoteFull)
 			{
-				PrintToChat(param1, "[SM] %t", "Max Nominations");
+				CPrintToChat(param1, "%t", "Max Nominations", g_szChatPrefix);
 				return 0;
 			}
 			
@@ -376,11 +387,11 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 
 			if (result == Nominate_Replaced)
 			{
-				PrintToChatAll("[SM] %t", "Map Nomination Changed", name, displayName);
+				CPrintToChatAll("%t", "Map Nomination Changed", g_szChatPrefix, name, displayName);
 				return 0;	
 			}
 			
-			PrintToChatAll("[SM] %t", "Map Nominated", name, displayName);
+			CPrintToChatAll("%t", "Map Nominated", g_szChatPrefix, name, displayName);
 		}
 		
 		case MenuAction_DrawItem:
@@ -455,7 +466,20 @@ public void db_setupDatabase()
 
 	if (g_hDb == null)
 		SetFailState("[Nominations] Unable to connect to database (%s)", szError);
-	
+
+	char szIdent[8];
+	SQL_ReadDriver(g_hDb, szIdent, 8);
+
+	if (strcmp(szIdent, "mysql", false) == 0)
+	{
+		// https://github.com/nikooo777/ckSurf/pull/58 - eeeee that is an issue in a half || Also https://discordapp.com/channels/366959507764674560/379572504542445568/729723679541559336
+		SQL_FastQuery(g_hDb, "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
+	}
+	else
+	{
+		SetFailState("[Nominations] Invalid database type");
+		return;
+	}
 	return;
 }
 
@@ -517,8 +541,14 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 				Format(bonuses, sizeof(bonuses), "- Bonuses %d", bonus);
 			
 			Format(szValue, sizeof(szValue), "%s - Tier %d %s %s", szMapName, tier, stages, bonuses);
-			g_MapList.PushString(szMapName);
-			g_MapListTier.PushString(szValue);
+
+			if (IsMapValid(szMapName))
+			{
+				g_MapList.PushString(szMapName);
+				g_MapListTier.PushString(szValue);
+			}
+			else
+				LogError("Error 404: Map %s was found in database but not on server! Please delete entry in database or add the map to server!", szMapName);
 		}
 
 		BuildMapMenu();

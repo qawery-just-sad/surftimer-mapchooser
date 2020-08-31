@@ -36,6 +36,8 @@
 #include <mapchooser>
 #include <nextmap>
 #include <SurfTimer>
+#include <autoexecconfig>
+#include <colorlib>
 
 #pragma newdecls required
 
@@ -44,8 +46,8 @@ public Plugin myinfo =
 	name = "SurfTimer MapChooser",
 	author = "AlliedModders LLC & SurfTimer Contributors",
 	description = "Automated Map Voting",
-	version = "1.2",
-	url = "http://www.sourcemod.net/"
+	version = "1.6",
+	url = "https://github.com/qawery-just-sad/surftimer-mapchooser"
 };
 
 /* Valve ConVars */
@@ -73,6 +75,10 @@ ConVar g_Cvar_RunOffPercent;
 ConVar g_Cvar_ServerTier;
 ConVar g_Cvar_PointsRequirement;
 ConVar g_Cvar_RankRequirement;
+
+// Chat prefix
+char g_szChatPrefix[256];
+ConVar g_ChatPrefix = null;
 
 Handle g_VoteTimer = null;
 Handle g_RetryTimer = null;
@@ -121,7 +127,6 @@ int g_winCount[MAXTEAMS];
 public void OnPluginStart()
 {
 	LoadTranslations("mapchooser.phrases");
-	LoadTranslations("common.phrases");
 
 	db_setupDatabase();
 	
@@ -133,25 +138,31 @@ public void OnPluginStart()
 	g_OldMapList = new ArrayList(arraySize);
 	g_NextMapList = new ArrayList(arraySize);
 	
-	g_Cvar_EndOfMapVote = CreateConVar("sm_mapvote_endvote", "1", "Specifies if MapChooser should run an end of map vote", _, true, 0.0, true, 1.0);
+	AutoExecConfig_SetCreateDirectory(true);
+	AutoExecConfig_SetCreateFile(true);
+	AutoExecConfig_SetFile("mapchooser");
 
-	g_Cvar_StartTime = CreateConVar("sm_mapvote_start", "3.0", "Specifies when to start the vote based on time remaining.", _, true, 1.0);
-	g_Cvar_StartRounds = CreateConVar("sm_mapvote_startround", "2.0", "Specifies when to start the vote based on rounds remaining. Use 0 on TF2 to start vote during bonus round time", _, true, 0.0);
-	g_Cvar_StartFrags = CreateConVar("sm_mapvote_startfrags", "5.0", "Specifies when to start the vote base on frags remaining.", _, true, 1.0);
-	g_Cvar_ExtendTimeStep = CreateConVar("sm_extendmap_timestep", "15", "Specifies how much many more minutes each extension makes", _, true, 5.0);
-	g_Cvar_ExtendRoundStep = CreateConVar("sm_extendmap_roundstep", "5", "Specifies how many more rounds each extension makes", _, true, 1.0);
-	g_Cvar_ExtendFragStep = CreateConVar("sm_extendmap_fragstep", "10", "Specifies how many more frags are allowed when map is extended.", _, true, 5.0);	
-	g_Cvar_ExcludeMaps = CreateConVar("sm_mapvote_exclude", "5", "Specifies how many past maps to exclude from the vote.", _, true, 0.0);
-	g_Cvar_IncludeMaps = CreateConVar("sm_mapvote_include", "5", "Specifies how many maps to include in the vote.", _, true, 2.0, true, 6.0);
-	g_Cvar_NoVoteMode = CreateConVar("sm_mapvote_novote", "1", "Specifies whether or not MapChooser should pick a map if no votes are received.", _, true, 0.0, true, 1.0);
-	g_Cvar_Extend = CreateConVar("sm_mapvote_extend", "0", "Number of extensions allowed each map.", _, true, 0.0);
-	g_Cvar_DontChange = CreateConVar("sm_mapvote_dontchange", "1", "Specifies if a 'Don't Change' option should be added to early votes", _, true, 0.0);
-	g_Cvar_VoteDuration = CreateConVar("sm_mapvote_voteduration", "20", "Specifies how long the mapvote should be available for.", _, true, 5.0);
-	g_Cvar_RunOff = CreateConVar("sm_mapvote_runoff", "0", "Hold run of votes if winning choice is less than a certain margin", _, true, 0.0, true, 1.0);
-	g_Cvar_RunOffPercent = CreateConVar("sm_mapvote_runoffpercent", "50", "If winning choice has less than this percent of votes, hold a runoff", _, true, 0.0, true, 100.0);
+	g_Cvar_EndOfMapVote = AutoExecConfig_CreateConVar("sm_mapvote_endvote", "1", "Specifies if MapChooser should run an end of map vote", _, true, 0.0, true, 1.0);
+	g_Cvar_StartTime = AutoExecConfig_CreateConVar("sm_mapvote_start", "3.0", "Specifies when to start the vote based on time remaining.", _, true, 1.0);
+	g_Cvar_StartRounds = AutoExecConfig_CreateConVar("sm_mapvote_startround", "2.0", "Specifies when to start the vote based on rounds remaining. Use 0 on TF2 to start vote during bonus round time", _, true, 0.0);
+	g_Cvar_StartFrags = AutoExecConfig_CreateConVar("sm_mapvote_startfrags", "5.0", "Specifies when to start the vote base on frags remaining.", _, true, 1.0);
+	g_Cvar_ExtendTimeStep = AutoExecConfig_CreateConVar("sm_extendmap_timestep", "15", "Specifies how much many more minutes each extension makes", _, true, 5.0);
+	g_Cvar_ExtendRoundStep = AutoExecConfig_CreateConVar("sm_extendmap_roundstep", "5", "Specifies how many more rounds each extension makes", _, true, 1.0);
+	g_Cvar_ExtendFragStep = AutoExecConfig_CreateConVar("sm_extendmap_fragstep", "10", "Specifies how many more frags are allowed when map is extended.", _, true, 5.0);	
+	g_Cvar_ExcludeMaps = AutoExecConfig_CreateConVar("sm_mapvote_exclude", "5", "Specifies how many past maps to exclude from the vote.", _, true, 0.0);
+	g_Cvar_IncludeMaps = AutoExecConfig_CreateConVar("sm_mapvote_include", "5", "Specifies how many maps to include in the vote.", _, true, 2.0, true, 6.0);
+	g_Cvar_NoVoteMode = AutoExecConfig_CreateConVar("sm_mapvote_novote", "1", "Specifies whether or not MapChooser should pick a map if no votes are received.", _, true, 0.0, true, 1.0);
+	g_Cvar_Extend = AutoExecConfig_CreateConVar("sm_mapvote_extend", "0", "Number of extensions allowed each map.", _, true, 0.0);
+	g_Cvar_DontChange = AutoExecConfig_CreateConVar("sm_mapvote_dontchange", "1", "Specifies if a 'Don't Change' option should be added to early votes", _, true, 0.0);
+	g_Cvar_VoteDuration = AutoExecConfig_CreateConVar("sm_mapvote_voteduration", "20", "Specifies how long the mapvote should be available for.", _, true, 5.0);
+	g_Cvar_RunOff = AutoExecConfig_CreateConVar("sm_mapvote_runoff", "0", "Hold run of votes if winning choice is less than a certain margin", _, true, 0.0, true, 1.0);
+	g_Cvar_RunOffPercent = AutoExecConfig_CreateConVar("sm_mapvote_runoffpercent", "50", "If winning choice has less than this percent of votes, hold a runoff", _, true, 0.0, true, 100.0);
 	
 	// KP Surf ConVars
-	g_Cvar_ServerTier = CreateConVar("sm_server_tier", "1.0", "Specifies the tier range for maps, for example if you want a tier 1-3 server make it 1.3, a tier 2 only server would be 2.0, etc", 0, true, 1.0, true, 8.0);
+	g_Cvar_ServerTier = AutoExecConfig_CreateConVar("sm_server_tier", "0", "Specifies the tier range for maps, for example if you want a tier 1-3 server make it 1.3, a tier 2 only server would be 2.0, etc", 0, true, 0.0, true, 8.0);
+
+	AutoExecConfig_ExecuteFile();
+	AutoExecConfig_CleanFile();
 	
 	RegAdminCmd("sm_mapvote", Command_Mapvote, ADMFLAG_CHANGEMAP, "sm_mapvote - Forces MapChooser to attempt to run a map vote now.");
 	RegAdminCmd("sm_setnextmap", Command_SetNextmap, ADMFLAG_CHANGEMAP, "sm_setnextmap <map>");
@@ -161,8 +172,6 @@ public void OnPluginStart()
 	g_Cvar_Fraglimit = FindConVar("mp_fraglimit");
 	g_Cvar_Bonusroundtime = FindConVar("mp_bonusroundtime");
 
-	
-	
 	if (g_Cvar_Winlimit || g_Cvar_Maxrounds)
 	{
 		char folder[64];
@@ -193,7 +202,6 @@ public void OnPluginStart()
 		HookEvent("player_death", Event_PlayerDeath);		
 	}
 	
-	AutoExecConfig(true, "mapchooser");
 	
 	//Change the mp_bonusroundtime max so that we have time to display the vote
 	//If you display a vote during bonus time good defaults are 17 vote duration and 19 mp_bonustime
@@ -237,6 +245,9 @@ public void OnConfigsExecuted()
 	// 		LogError("Unable to create a valid map list.");
 	// 	}
 	// }
+
+	g_ChatPrefix = FindConVar("ck_chat_prefix");
+	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
 
 	SelectMapList();
 	
@@ -312,7 +323,7 @@ public Action Command_SetNextmap(int client, int args)
 {
 	if (args < 1)
 	{
-		ReplyToCommand(client, "[SM] Usage: sm_setnextmap <map>");
+		CReplyToCommand(client, "%t", "Usage_setnm", g_szChatPrefix);
 		return Plugin_Handled;
 	}
 
@@ -322,13 +333,13 @@ public Action Command_SetNextmap(int client, int args)
 
 	if (FindMap(map, displayName, sizeof(displayName)) == FindMap_NotFound)
 	{
-		ReplyToCommand(client, "[SM] %t", "Map was not found", map);
+		CReplyToCommand(client, "%t", "Map was not found", g_szChatPrefix, map);
 		return Plugin_Handled;
 	}
 
 	GetMapDisplayName(displayName, displayName, sizeof(displayName));
 
-	ShowActivity2(client, "[SM] ", "%t", "Changed Next Map", displayName);
+	CShowActivity2(client, g_szChatPrefix, "%t", "Changed Next Map", displayName);
 	LogAction(client, -1, "\"%L\" changed nextmap to \"%s\"", client, map);
 
 	SetNextMap(map);
@@ -717,7 +728,7 @@ void InitiateVote(MapChange when, ArrayList inputlist=null)
 	DisplayVoteToPros(voteDuration, 0, g_VoteMenu);
 
 	LogAction(-1, -1, "Voting for next map has started.");
-	PrintToChatAll("[SM] %t", "Nextmap Voting Started");
+	CPrintToChatAll("%t", "Nextmap Voting Started", g_szChatPrefix);
 }
 
 public void Handler_VoteFinishedGeneric(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info)
@@ -766,7 +777,7 @@ public void Handler_VoteFinishedGeneric(Menu menu, int num_votes, int num_client
 			}
 		}
 
-		PrintToChatAll("[SM] %t", "Current Map Extended", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100), num_votes);
+		CPrintToChatAll("%t", "Current Map Extended", g_szChatPrefix, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100), num_votes);
 		LogAction(-1, -1, "Voting for next map has finished. The current map has been extended.");
 		
 		// We extended, so we'll have to vote again.
@@ -777,7 +788,7 @@ public void Handler_VoteFinishedGeneric(Menu menu, int num_votes, int num_client
 	}
 	else if (strcmp(map, VOTE_DONTCHANGE, false) == 0)
 	{
-		PrintToChatAll("[SM] %t", "Current Map Stays", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100), num_votes);
+		CPrintToChatAll("%t", "Current Map Stays", g_szChatPrefix, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100), num_votes);
 		LogAction(-1, -1, "Voting for next map has finished. 'No Change' was the winner");
 		
 		g_HasVoteStarted = false;
@@ -806,7 +817,7 @@ public void Handler_VoteFinishedGeneric(Menu menu, int num_votes, int num_client
 		g_HasVoteStarted = false;
 		g_MapVoteCompleted = true;
 		
-		PrintToChatAll("[SM] %t", "Nextmap Voting Finished", displayName, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100), num_votes);
+		CPrintToChatAll("%t", "Nextmap Voting Finished", g_szChatPrefix, displayName, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100), num_votes);
 		LogAction(-1, -1, "Voting for next map has finished. Nextmap: %s.", map);
 	}	
 }
@@ -843,7 +854,7 @@ public void Handler_MapVoteFinished(Menu menu, int num_votes, int num_clients, c
 			float map2percent = float(item_info[1][VOTEINFO_ITEM_VOTES])/ float(num_votes) * 100;
 			
 			
-			PrintToChatAll("[SM] %t", "Starting Runoff", g_Cvar_RunOffPercent.FloatValue, info1, map1percent, info2, map2percent);
+			CPrintToChatAll("%t", "Starting Runoff", g_szChatPrefix, g_Cvar_RunOffPercent.FloatValue, info1, map1percent, info2, map2percent);
 			LogMessage("Voting for next map was indecisive, beginning runoff vote");
 					
 			return;
@@ -1246,6 +1257,19 @@ public void db_setupDatabase()
 	if (g_hDb == null)
 		SetFailState("[Mapchooser] Unable to connect to database (%s)", szError);
 	
+	char szIdent[8];
+	SQL_ReadDriver(g_hDb, szIdent, 8);
+
+	if (strcmp(szIdent, "mysql", false) == 0)
+	{
+		// https://github.com/nikooo777/ckSurf/pull/58 - eeeee that is an issue in a half || Also https://discordapp.com/channels/366959507764674560/379572504542445568/729723679541559336
+		SQL_FastQuery(g_hDb, "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
+	}
+	else
+	{
+		SetFailState("[Mapchooser] Invalid database type");
+		return;
+	}
 	return;
 }
 
@@ -1306,8 +1330,14 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 				Format(bonuses, sizeof(bonuses), "- Bonuses %d", bonus);
 			
 			Format(szValue, sizeof(szValue), "%s - Tier %d %s %s", szMapName, tier, stages, bonuses);
-			g_MapList.PushString(szMapName);
-			g_MapListTier.PushString(szValue);
+
+			if (IsMapValid(szMapName))
+			{
+				g_MapList.PushString(szMapName);
+				g_MapListTier.PushString(szValue);
+			}
+			else
+				LogError("Error 404: Map %s was found in database but not on server! Please delete entry in database or add the map to server!", szMapName);
 		}
 	}
 }
