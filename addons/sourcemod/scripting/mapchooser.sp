@@ -1301,7 +1301,7 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 		g_MapList.Clear();
 		g_MapListTier.Clear();
 
-		char szMapName[128], szValue[256], stages[128], bonuses[128];
+		char szMapName[128], szValue[256], stages[128], bonuses[128], sztier[128];
 		int tier, zones, bonus;
 		while (SQL_FetchRow(hndl))
 		{
@@ -1312,19 +1312,21 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 
 			if (zones == 1)
 			{
-				Format(stages, sizeof(stages), "- Linear");
+				Format(stages, sizeof(stages), "%t", "Linear");
 			}
 			else
-				Format(stages, sizeof(stages), "- Stages %d", zones);
+				Format(stages, sizeof(stages), "%t", "Staged", zones);
 
 			if (bonus == 0)
 			{
 				Format(bonuses, sizeof(bonuses), "");
 			}
 			else
-				Format(bonuses, sizeof(bonuses), "- Bonuses %d", bonus);
+				Format(bonuses, sizeof(bonuses), "%t", "Bonuses", bonus);
+
+			Format(sztier, sizeof(sztier), "%t", "Tier", tier);
 			
-			Format(szValue, sizeof(szValue), "%s - Tier %d %s %s", szMapName, tier, stages, bonuses);
+			Format(szValue, sizeof(szValue), "%t", "Final Map Info", szMapName, sztier, stages, bonuses);
 
 			if (IsMapValid(szMapName))
 			{

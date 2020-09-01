@@ -387,7 +387,7 @@ void BuildMapMenu()
 		g_mapTrie.SetValue(map, status);
 	}
 
-	g_MapMenu.ExitButton = true;
+	g_MapMenu.ExitBackButton = true;
 
 	delete excludeMaps;
 }
@@ -471,19 +471,19 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 			{
 				if ((status & MAPSTATUS_EXCLUDE_CURRENT) == MAPSTATUS_EXCLUDE_CURRENT)
 				{
-					Format(display, sizeof(display), "%s (%T)", displayName, "Current Map", param1);
+					Format(display, sizeof(display), "%s %T", displayName, "Current Map", param1);
 					return RedrawMenuItem(display);
 				}
 				
 				if ((status & MAPSTATUS_EXCLUDE_PREVIOUS) == MAPSTATUS_EXCLUDE_PREVIOUS)
 				{
-					Format(display, sizeof(display), "%s (%T)", displayName, "Recently Played", param1);
+					Format(display, sizeof(display), "%s %T", displayName, "Recently Played", param1);
 					return RedrawMenuItem(display);
 				}
 				
 				if ((status & MAPSTATUS_EXCLUDE_NOMINATED) == MAPSTATUS_EXCLUDE_NOMINATED)
 				{
-					Format(display, sizeof(display), "%s (%T)", displayName, "Nominated", param1);
+					Format(display, sizeof(display), "%s %T", displayName, "Nominated", param1);
 					return RedrawMenuItem(display);
 				}
 			}
@@ -565,7 +565,7 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 		g_MapTierInt.Clear();
 
 		int tier, zones, bonus;
-		char szValue[256], szMapName[128], stages[128], bonuses[128];
+		char szValue[256], szMapName[128], stages[128], bonuses[128], sztier[128];
 		while (SQL_FetchRow(hndl))
 		{
 			SQL_FetchString(hndl, 0, szMapName, sizeof(szMapName));
@@ -575,19 +575,21 @@ public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error,
 
 			if (zones == 1)
 			{
-				Format(stages, sizeof(stages), "- Linear");
+				Format(stages, sizeof(stages), "%t", "Linear");
 			}
 			else
-				Format(stages, sizeof(stages), "- Stages %d", zones);
+				Format(stages, sizeof(stages), "%t", "Staged", zones);
 
 			if (bonus == 0)
 			{
 				Format(bonuses, sizeof(bonuses), "");
 			}
 			else
-				Format(bonuses, sizeof(bonuses), "- Bonuses %d", bonus);
+				Format(bonuses, sizeof(bonuses), "%t", "Bonuses", bonus);
+
+			Format(sztier, sizeof(sztier), "%t", "Tier", tier);
 			
-			Format(szValue, sizeof(szValue), "%s - Tier %d %s %s", szMapName, tier, stages, bonuses);
+			Format(szValue, sizeof(szValue), "%t", "Final Map Info", szMapName, sztier, stages, bonuses);
 
 			if (IsMapValid(szMapName))
 			{
@@ -617,7 +619,7 @@ void BuildTierMenus()
 	for(int i = g_TierMin; i <= g_TierMax; i++)
 	{
 		Menu TierMenu = new Menu(Handler_MapSelectMenu, MENU_ACTIONS_DEFAULT|MenuAction_DrawItem|MenuAction_DisplayItem);
-		TierMenu.SetTitle("Nominate Menu\nTier \"%i\" Maps\n ", i);
+		TierMenu.SetTitle("%t", "Nominate Tier Title", i);
 		TierMenu.ExitBackButton = true;
 
 		g_aTierMenus.Push(TierMenu);
@@ -650,7 +652,7 @@ void BuildTierMenus()
 	g_TieredMenu.ExitButton = true;
 	
 	g_TieredMenu.SetTitle("Nominate Menu");	
-	g_TieredMenu.AddItem("Alphabetic", "Alphabetic");
+	g_TieredMenu.AddItem("Alphabetic", "Alphabetic\n ");
 
 
 	for( int i = g_TierMin; i <= g_TierMax; ++i )
