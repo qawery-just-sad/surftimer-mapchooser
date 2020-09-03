@@ -127,8 +127,21 @@ public void OnConfigsExecuted()
 	g_Cvar_ServerTier = FindConVar("sm_server_tier");
 	GetConVarString(g_Cvar_ServerTier, g_szTier, sizeof(g_szTier));
 	ExplodeString(g_szTier, ".", g_szBuffer, 2, 32);
-	g_TierMin = StringToInt(g_szBuffer[0]);
-	g_TierMax = StringToInt(g_szBuffer[1]);
+	if (StrEqual(g_szBuffer[1], "0"))
+	{
+		g_TierMin = StringToInt(g_szBuffer[0]);
+		g_TierMax = StringToInt(g_szBuffer[0]);
+	}
+	else if (strlen(g_szBuffer[1]) > 0)
+	{
+		g_TierMin = StringToInt(g_szBuffer[0]);
+		g_TierMax = StringToInt(g_szBuffer[1]);
+	}
+	else
+	{
+		g_TierMin = 1;
+		g_TierMax = 8;
+	}
 	
 	if (g_TierMax < g_TierMin)
 	{
