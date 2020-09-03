@@ -92,7 +92,7 @@ char sql_SelectMapList[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapnam
 
 public void OnPluginStart()
 {
-	LoadTranslations("nominations.phrases");
+	LoadTranslations("st-nominations.phrases");
 
 	db_setupDatabase();
 	

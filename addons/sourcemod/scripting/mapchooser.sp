@@ -126,7 +126,7 @@ int g_winCount[MAXTEAMS];
 
 public void OnPluginStart()
 {
-	LoadTranslations("mapchooser.phrases");
+	LoadTranslations("st-mapchooser.phrases");
 
 	db_setupDatabase();
 	
