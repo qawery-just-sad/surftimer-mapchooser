@@ -45,7 +45,7 @@ public Plugin myinfo =
 	name = "SurfTimer Rock The Vote",
 	author = "AlliedModders LLC & SurfTimer Contributors",
 	description = "Provides RTV Map Voting",
-	version = "1.8",
+	version = "1.8.2",
 	url = "https://github.com/qawery-just-sad/surftimer-mapchooser"
 };
 
@@ -57,6 +57,7 @@ ConVar g_Cvar_ChangeTime;
 ConVar g_Cvar_RTVPostVoteAction;
 ConVar g_Cvar_PointsRequirement;
 ConVar g_Cvar_RankRequirement;
+ConVar g_Cvar_VIPOverwriteRequirements;
 
 // Chat prefix
 char g_szChatPrefix[256];
@@ -87,6 +88,7 @@ public void OnPluginStart()
 	g_Cvar_RTVPostVoteAction = AutoExecConfig_CreateConVar("sm_rtv_postvoteaction", "0", "What to do with RTV's after a mapvote has completed. 0 - Allow, success = instant change, 1 - Deny", _, true, 0.0, true, 1.0);
 	g_Cvar_PointsRequirement = AutoExecConfig_CreateConVar("sm_rtv_point_requirement", "0", "Amount of points required to use the rtv command, 0 to disable");
 	g_Cvar_RankRequirement = AutoExecConfig_CreateConVar("sm_rtv_rank_requirement", "0", "Rank required to use the rtv command, 0 to disable");
+	g_Cvar_VIPOverwriteRequirements = AutoExecConfig_CreateConVar("sm_rtv_vipoverwrite", "0", "1 - VIP's bypass Rank and/or Points requirement, 0 - VIP's need to meet the Rank and/or Points requirement", _, true, 0.0, true, 1.0);
 	
 	RegConsoleCmd("sm_rtv", Command_RTV);
 	
@@ -124,27 +126,31 @@ public void OnConfigsExecuted()
 
 public void OnClientPostAdminCheck(int client)
 {
-	if (!IsFakeClient(client))
+	if (IsFakeClient(client) || !PointsCheck(client) || !RankCheck(client))
 	{
-		g_Voters++;
-		g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Needed.FloatValue);
+		return;
 	}
+
+	g_Voters++;
+	g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Needed.FloatValue);
+
 }
 
 public void OnClientDisconnect(int client)
 {
+	if (IsFakeClient(client) || !PointsCheck(client) || !RankCheck(client))
+    {
+        return;
+    }
+
 	if (g_Voted[client])
 	{
-		g_Votes--;
 		g_Voted[client] = false;
-	}
-	
-	if (!IsFakeClient(client))
-	{
-		g_Voters--;
-		g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Needed.FloatValue);
-	}
-	
+    }
+
+	g_Voters--;
+	g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Needed.FloatValue);
+
 	if (g_Votes && 
 		g_Voters && 
 		g_Votes >= g_VotesNeeded && 
@@ -214,32 +220,26 @@ void AttemptRTV(int client)
 		return;
 	}
 
-	if (GetConVarInt(g_Cvar_PointsRequirement) > 0)
+	if (!PointsCheck(client))
 	{
-		if (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement))
-		{
-			CPrintToChat(client, "%t", "Point Requirement", g_szChatPrefix);
-			return;
-		}
+		CPrintToChat(client, "%t", "Point Requirement", g_szChatPrefix);
+		return;
 	}
 
-	if (GetConVarInt(g_Cvar_RankRequirement) > 0)
+	if (!RankCheck(client))
 	{
-		if (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0)
-		{
-			CPrintToChat(client, "%t", "Rank Requirement", g_szChatPrefix, GetConVarInt(g_Cvar_RankRequirement));
-			return;
-		}
+		CPrintToChat(client, "%t", "Rank Requirement", g_szChatPrefix, GetConVarInt(g_Cvar_RankRequirement));
+		return;
 	}
-	
+
 	char name[MAX_NAME_LENGTH];
 	GetClientName(client, name, sizeof(name));
-	
+
 	g_Votes++;
 	g_Voted[client] = true;
-	
+
 	CPrintToChatAll("%t", "RTV Requested", g_szChatPrefix, name, g_Votes, g_VotesNeeded);
-	
+
 	if (g_Votes >= g_VotesNeeded)
 	{
 		StartRTV();
@@ -319,4 +319,44 @@ stock bool IsValidClient(int client)
 	if (client >= 1 && client <= MaxClients && IsValidEntity(client) && IsClientConnected(client) && IsClientInGame(client))
 		return true;
 	return false;
+}
+
+stock bool RankCheck(int client)
+{
+
+	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0))
+	{
+		return false;
+	}
+
+	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
+	{
+		return true;
+	}
+
+	else
+	{
+		return true;
+	}
+	
+}
+
+stock bool PointsCheck(int client)
+{
+
+	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement)))
+	{
+		return false;
+	}
+
+	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
+	{
+		return true;
+	
+	}
+	else
+	{
+		return true;
+	}
+
 }
