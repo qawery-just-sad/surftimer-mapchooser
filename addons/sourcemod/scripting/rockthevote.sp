@@ -324,14 +324,9 @@ stock bool IsValidClient(int client)
 stock bool RankCheck(int client)
 {
 
-	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0))
+	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0) && !VIPBypass(client))
 	{
 		return false;
-	}
-
-	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
-	{
-		return true;
 	}
 
 	else
@@ -344,19 +339,28 @@ stock bool RankCheck(int client)
 stock bool PointsCheck(int client)
 {
 
-	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement)))
+	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement)) && !VIPBypass(client))
 	{
 		return false;
 	}
 
-	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
-	{
-		return true;
-	
-	}
 	else
 	{
 		return true;
+	}
+
+}
+
+stock bool VIPBypass(int client)
+{
+	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
 	}
 
 }
