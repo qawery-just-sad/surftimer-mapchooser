@@ -75,6 +75,8 @@ ConVar g_Cvar_RunOffPercent;
 ConVar g_Cvar_ServerTier;
 ConVar g_Cvar_PointsRequirement;
 ConVar g_Cvar_RankRequirement;
+ConVar g_Cvar_VIPOverwriteRequirements;
+ConVar g_PlayerOne;
 
 // Chat prefix
 char g_szChatPrefix[256];
@@ -102,6 +104,10 @@ bool g_MapVoteCompleted;
 bool g_ChangeMapAtRoundEnd;
 bool g_ChangeMapInProgress;
 // int g_mapFileSerial = -1;
+
+bool g_PointsREQ[MAXPLAYERS+1] = {false, ...};
+bool g_RankREQ[MAXPLAYERS+1] = {false, ...};
+int g_Voters;
 
 MapChange g_ChangeTime;
 
@@ -296,7 +302,25 @@ public void OnMapEnd()
 	if (g_OldMapList.Length > g_Cvar_ExcludeMaps.IntValue)
 	{
 		g_OldMapList.Erase(0);
-	}	
+	}
+
+	for ( int i=0 ; i<=MAXPLAYERS+1 ; i++ )
+	{
+		g_RankREQ[i] = false;
+		g_PointsREQ[i] = false;
+	}
+	g_Voters = 0;
+}
+
+public void OnClientPostAdminCheck(int client)
+{
+	if (IsFakeClient(client))
+	{
+		return;
+	}
+	g_Voters++;
+	PointsCheck(client);
+	RankCheck(client);
 }
 
 public void OnClientDisconnect(int client)
@@ -317,6 +341,14 @@ public void OnClientDisconnect(int client)
 	
 	g_NominateOwners.Erase(index);
 	g_NominateList.Erase(index);
+
+	if (IsFakeClient(client))
+	{
+		return;
+	}
+	g_RankREQ[client] = false;
+	g_PointsREQ[client] = false;
+	g_Voters--;
 }
 
 public Action Command_SetNextmap(int client, int args)
@@ -1360,32 +1392,65 @@ public void GetMapDisplayNameTier(char[] szMapName, char szBuffer[PLATFORM_MAX_P
 
 public bool DisplayVoteToPros(int time, int flags, Menu menu) 
 {
+	g_PlayerOne = FindConVar("sm_rtv_oneplayer");
 	int total = 0;
 	int[] players = new int[MaxClients];
-	g_Cvar_PointsRequirement = FindConVar("sm_rtv_point_requirement");
-	g_Cvar_RankRequirement = FindConVar("sm_rtv_rank_requirement");
 	for (int i = 1; i <= MaxClients; i++) 
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i))
+		{
 			continue;
-
-		if (g_Cvar_PointsRequirement != null && GetConVarInt(g_Cvar_PointsRequirement) > 0)
-		{
-			if (surftimer_GetPlayerPoints(i) < GetConVarInt(g_Cvar_PointsRequirement))
-			{
-				continue;
-			}
 		}
-
-		if (g_Cvar_RankRequirement != null && GetConVarInt(g_Cvar_RankRequirement) > 0)
+		
+		if (g_PointsREQ[i] == true || g_RankREQ[i] == true)
 		{
-			if (surftimer_GetPlayerRank(i) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(i) == 0)
-			{
-				continue;
-			}
+			continue;
+		}
+		if (g_Voters == 1 && GetConVarBool(g_PlayerOne))
+		{
+			continue;
 		}
 
 		players[total++] = i;
 	}
 	menu.DisplayVote(players, total, time, flags);
+}
+
+stock bool RankCheck(int client)
+{
+	g_Cvar_RankRequirement = FindConVar("sm_rtv_rank_requirement");
+	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0) && !VIPBypass(client))
+	{
+		g_RankREQ[client] = false;
+	}
+	else
+	{
+		g_RankREQ[client] = true;
+	}
+}
+
+stock bool PointsCheck(int client)
+{
+	g_Cvar_PointsRequirement = FindConVar("sm_rtv_point_requirement");
+	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement)) && !VIPBypass(client))
+	{
+		g_PointsREQ[client] = false;
+	}
+	else
+	{
+		g_PointsREQ[client] = true;
+	}
+}
+
+stock bool VIPBypass(int client)
+{
+	g_Cvar_VIPOverwriteRequirements = FindConVar("sm_rtv_vipoverwrite");
+	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }

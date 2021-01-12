@@ -58,6 +58,7 @@ ConVar g_Cvar_RTVPostVoteAction;
 ConVar g_Cvar_PointsRequirement;
 ConVar g_Cvar_RankRequirement;
 ConVar g_Cvar_VIPOverwriteRequirements;
+ConVar g_PlayerOne;
 
 // Chat prefix
 char g_szChatPrefix[256];
@@ -68,6 +69,9 @@ int g_Voters = 0;				// Total voters connected. Doesn't include fake clients.
 int g_Votes = 0;				// Total number of "say rtv" votes
 int g_VotesNeeded = 0;			// Necessary votes before map vote begins. (voters * percent_needed)
 bool g_Voted[MAXPLAYERS+1] = {false, ...};
+
+bool g_PointsREQ[MAXPLAYERS+1] = {false, ...};
+bool g_RankREQ[MAXPLAYERS+1] = {false, ...};
 
 bool g_InChange = false;
 
@@ -89,7 +93,8 @@ public void OnPluginStart()
 	g_Cvar_PointsRequirement = AutoExecConfig_CreateConVar("sm_rtv_point_requirement", "0", "Amount of points required to use the rtv command, 0 to disable");
 	g_Cvar_RankRequirement = AutoExecConfig_CreateConVar("sm_rtv_rank_requirement", "0", "Rank required to use the rtv command, 0 to disable");
 	g_Cvar_VIPOverwriteRequirements = AutoExecConfig_CreateConVar("sm_rtv_vipoverwrite", "0", "1 - VIP's bypass Rank and/or Points requirement, 0 - VIP's need to meet the Rank and/or Points requirement", _, true, 0.0, true, 1.0);
-	
+	g_PlayerOne = AutoExecConfig_CreateConVar("sm_rtv_oneplayer", "1", "If there is  only one player in the server allow him to rtv 1-allow 0-no", _, true, 0.0, true, 1.0);
+
 	RegConsoleCmd("sm_rtv", Command_RTV);
 	
 	AutoExecConfig_ExecuteFile();
@@ -114,6 +119,11 @@ public void OnMapEnd()
 	g_Votes = 0;
 	g_VotesNeeded = 0;
 	g_InChange = false;
+	for ( int i=0 ; i<=MAXPLAYERS+1 ; i++ )
+	{
+		g_RankREQ[i] = false;
+		g_PointsREQ[i] = false;
+	}
 }
 
 public void OnConfigsExecuted()
@@ -126,31 +136,57 @@ public void OnConfigsExecuted()
 
 public void OnClientPostAdminCheck(int client)
 {
-	if (IsFakeClient(client) || !PointsCheck(client) || !RankCheck(client))
+	if (IsFakeClient(client))
 	{
 		return;
 	}
 
-	g_Voters++;
-	g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Needed.FloatValue);
+	PointsCheck(client);
+	RankCheck(client);
 
+	g_Voters++;
+	CalcVotesNeeded();
 }
+
+public void CalcVotesNeeded()
+{
+	if ( GetConVarInt(g_Cvar_RankRequirement) > 0 || GetConVarInt(g_Cvar_PointsRequirement) > 0 )
+	{
+		int RealVoters = 0;
+		for ( int i=0 ; i<=MAXPLAYERS+1 ; i++ )
+		{
+			if (g_RankREQ[i] == true || g_PointsREQ[i] == true)
+			{
+				RealVoters++;
+			}
+		}
+		g_VotesNeeded = RoundToCeil(float(RealVoters) * g_Cvar_Needed.FloatValue);
+	}
+	else
+	{
+		g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Needed.FloatValue);
+	}
+}
+	
 
 public void OnClientDisconnect(int client)
 {
-	if (IsFakeClient(client) || !PointsCheck(client) || !RankCheck(client))
-    {
-        return;
-    }
-
 	if (g_Voted[client])
 	{
 		g_Voted[client] = false;
     }
+	
+	if (IsFakeClient(client))
+	{
+		return;
+	}
+
+	g_RankREQ[client] = false;
+	g_PointsREQ[client] = false;
 
 	g_Voters--;
-	g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Needed.FloatValue);
-
+	CalcVotesNeeded();
+	
 	if (g_Votes && 
 		g_Voters && 
 		g_Votes >= g_VotesNeeded && 
@@ -196,6 +232,8 @@ public Action Command_RTV(int client, int args)
 
 void AttemptRTV(int client)
 {
+	PlayerOne();
+	
 	if (!g_RTVAllowed || (g_Cvar_RTVPostVoteAction.IntValue == 1 && HasEndOfMapVoteFinished()))
 	{
 		CReplyToCommand(client, "%t", "RTV Not Allowed", g_szChatPrefix);
@@ -220,13 +258,13 @@ void AttemptRTV(int client)
 		return;
 	}
 
-	if (!PointsCheck(client))
+	if (g_PointsREQ[client] == false)
 	{
 		CPrintToChat(client, "%t", "Point Requirement", g_szChatPrefix);
 		return;
 	}
-
-	if (!RankCheck(client))
+	
+	if (g_RankREQ[client] == false)
 	{
 		CPrintToChat(client, "%t", "Rank Requirement", g_szChatPrefix, GetConVarInt(g_Cvar_RankRequirement));
 		return;
@@ -323,32 +361,26 @@ stock bool IsValidClient(int client)
 
 stock bool RankCheck(int client)
 {
-
 	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0) && !VIPBypass(client))
 	{
-		return false;
+		g_RankREQ[client] = false;
 	}
-
 	else
 	{
-		return true;
+		g_RankREQ[client] = true;
 	}
-	
 }
 
 stock bool PointsCheck(int client)
 {
-
 	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement)) && !VIPBypass(client))
 	{
-		return false;
+		g_PointsREQ[client] = false;
 	}
-
 	else
 	{
-		return true;
+		g_PointsREQ[client] = true;
 	}
-
 }
 
 stock bool VIPBypass(int client)
@@ -357,10 +389,16 @@ stock bool VIPBypass(int client)
 	{
 		return true;
 	}
-
 	else
 	{
 		return false;
 	}
+}
 
+stock bool PlayerOne()
+{
+	if ( g_Voters == 1 && GetConVarBool(g_PlayerOne) )
+	{
+		StartRTV();
+	}
 }
