@@ -1396,7 +1396,7 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 	int total = 0;
 	int[] players = new int[MaxClients];
 
-	if (g_Voters != 1 && GetConVarBool(g_PlayerOne))
+	if (g_Voters == 1 && GetConVarBool(g_PlayerOne))
 	{
 		for (int i = 1; i <= MaxClients; i++) 
 		{
