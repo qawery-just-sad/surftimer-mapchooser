@@ -1395,24 +1395,35 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 	g_PlayerOne = FindConVar("sm_rtv_oneplayer");
 	int total = 0;
 	int[] players = new int[MaxClients];
-	for (int i = 1; i <= MaxClients; i++) 
+
+	if (g_Voters != 1 && GetConVarBool(g_PlayerOne))
 	{
-		if (!IsClientInGame(i) || IsFakeClient(i))
+		for (int i = 1; i <= MaxClients; i++) 
 		{
-			continue;
-		}
+			if (!IsClientInGame(i) || IsFakeClient(i))
+			{
+				continue;
+			}
 
-		if (g_Voters != 1 && GetConVarBool(g_PlayerOne))
-		{
-			continue;
+			players[total++] = i;
 		}
-		
-		if (g_PointsREQ[i] == false || g_RankREQ[i] == false)
+	}
+	else
+	{
+		for (int i = 1; i <= MaxClients; i++) 
 		{
-			continue;
-		}
+			if (!IsClientInGame(i) || IsFakeClient(i))
+			{
+				continue;
+			}
+			
+			if (g_PointsREQ[i] == false || g_RankREQ[i] == false)
+			{
+				continue;
+			}
 
-		players[total++] = i;
+			players[total++] = i;
+		}
 	}
 	menu.DisplayVote(players, total, time, flags);
 }
