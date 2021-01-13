@@ -119,7 +119,7 @@ public void OnMapEnd()
 	g_Votes = 0;
 	g_VotesNeeded = 0;
 	g_InChange = false;
-	for ( int i=0 ; i<=MAXPLAYERS+1 ; i++ )
+	for ( int i=1 ; i<=MAXPLAYERS ; i++ )
 	{
 		g_RankREQ[i] = false;
 		g_PointsREQ[i] = false;
@@ -153,7 +153,7 @@ public void CalcVotesNeeded()
 	if ( GetConVarInt(g_Cvar_RankRequirement) > 0 || GetConVarInt(g_Cvar_PointsRequirement) > 0 )
 	{
 		int RealVoters = 0;
-		for ( int i=0 ; i<=MAXPLAYERS+1 ; i++ )
+		for ( int i=1 ; i<= MAXPLAYERS ; i++ )
 		{
 			if (g_RankREQ[i] == true || g_PointsREQ[i] == true)
 			{
