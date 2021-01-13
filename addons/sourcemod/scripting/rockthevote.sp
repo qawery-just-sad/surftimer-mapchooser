@@ -232,7 +232,10 @@ public Action Command_RTV(int client, int args)
 
 void AttemptRTV(int client)
 {
-	PlayerOne();
+	if (PlayerOne())
+	{
+		return;
+	}
 	
 	if (!g_RTVAllowed || (g_Cvar_RTVPostVoteAction.IntValue == 1 && HasEndOfMapVoteFinished()))
 	{
@@ -400,5 +403,10 @@ stock bool PlayerOne()
 	if ( g_Voters == 1 && GetConVarBool(g_PlayerOne) )
 	{
 		StartRTV();
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }

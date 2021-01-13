@@ -304,7 +304,7 @@ public void OnMapEnd()
 		g_OldMapList.Erase(0);
 	}
 
-	for ( int i=0 ; i<=MAXPLAYERS+1 ; i++ )
+	for ( int i=1 ; i<=MAXPLAYERS ; i++ )
 	{
 		g_RankREQ[i] = false;
 		g_PointsREQ[i] = false;
@@ -1402,11 +1402,11 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 			continue;
 		}
 		
-		if (g_PointsREQ[i] == true || g_RankREQ[i] == true)
+		if (g_PointsREQ[i] == false || g_RankREQ[i] == false)
 		{
 			continue;
 		}
-		if (g_Voters == 1 && GetConVarBool(g_PlayerOne))
+		if (g_Voters != 1 && GetConVarBool(g_PlayerOne))
 		{
 			continue;
 		}
