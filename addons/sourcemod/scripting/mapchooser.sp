@@ -1401,12 +1401,13 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 		{
 			continue;
 		}
-		
-		if (g_PointsREQ[i] == false || g_RankREQ[i] == false)
+
+		if (g_Voters != 1 && GetConVarBool(g_PlayerOne))
 		{
 			continue;
 		}
-		if (g_Voters != 1 && GetConVarBool(g_PlayerOne))
+		
+		if (g_PointsREQ[i] == false || g_RankREQ[i] == false)
 		{
 			continue;
 		}
