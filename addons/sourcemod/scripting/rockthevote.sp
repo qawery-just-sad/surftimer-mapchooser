@@ -72,6 +72,7 @@ bool g_Voted[MAXPLAYERS+1] = {false, ...};
 
 bool g_PointsREQ[MAXPLAYERS+1] = {false, ...};
 bool g_RankREQ[MAXPLAYERS+1] = {false, ...};
+int g_RealVoters = 0;
 
 bool g_InChange = false;
 
@@ -119,6 +120,7 @@ public void OnMapEnd()
 	g_Votes = 0;
 	g_VotesNeeded = 0;
 	g_InChange = false;
+	g_RealVoters = 0;
 	for ( int i=1 ; i<=MAXPLAYERS ; i++ )
 	{
 		g_RankREQ[i] = false;
@@ -152,15 +154,14 @@ public void CalcVotesNeeded()
 {
 	if ( GetConVarInt(g_Cvar_RankRequirement) > 0 || GetConVarInt(g_Cvar_PointsRequirement) > 0 )
 	{
-		int RealVoters = 0;
 		for ( int i=1 ; i<= MAXPLAYERS ; i++ )
 		{
 			if (g_RankREQ[i] == true || g_PointsREQ[i] == true)
 			{
-				RealVoters++;
+				g_RealVoters++;
 			}
 		}
-		g_VotesNeeded = RoundToCeil(float(RealVoters) * g_Cvar_Needed.FloatValue);
+		g_VotesNeeded = RoundToCeil(float(g_RealVoters) * g_Cvar_Needed.FloatValue);
 	}
 	else
 	{
@@ -181,8 +182,12 @@ public void OnClientDisconnect(int client)
 		return;
 	}
 
-	g_RankREQ[client] = false;
-	g_PointsREQ[client] = false;
+	if (g_RankREQ[client] == true || g_PointsREQ[client] == true)
+	{
+		g_RealVoters--;
+		g_RankREQ[client] = false;
+		g_PointsREQ[client] = false;
+	}
 
 	g_Voters--;
 	CalcVotesNeeded();
