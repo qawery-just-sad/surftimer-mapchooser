@@ -1428,29 +1428,43 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 	menu.DisplayVote(players, total, time, flags);
 }
 
-stock bool RankCheck(int client)
+void RankCheck(int client)
 {
 	g_Cvar_RankRequirement = FindConVar("sm_rtv_rank_requirement");
-	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0) && !VIPBypass(client))
+	if (GetConVarInt(g_Cvar_RankRequirement) > 0)
 	{
-		g_RankREQ[client] = false;
+		if ( (surftimer_GetPlayerRank(client) < GetConVarInt(g_Cvar_RankRequirement)) && (surftimer_GetPlayerRank(client) > 0) )
+		{
+			g_RankREQ[client] = true;
+		}
 	}
-	else
+	else if (VIPBypass(client))
 	{
 		g_RankREQ[client] = true;
 	}
+	else
+	{
+		g_RankREQ[client] = false;
+	}
 }
 
-stock bool PointsCheck(int client)
+void PointsCheck(int client)
 {
 	g_Cvar_PointsRequirement = FindConVar("sm_rtv_point_requirement");
-	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement)) && !VIPBypass(client))
+	if (GetConVarInt(g_Cvar_PointsRequirement) > 0)
 	{
-		g_PointsREQ[client] = false;
+		if (surftimer_GetPlayerPoints(client) > GetConVarInt(g_Cvar_PointsRequirement))
+		{
+			g_PointsREQ[client] = true;
+		}
+	}
+	else if (VIPBypass(client))
+	{
+		g_PointsREQ[client] = true;
 	}
 	else
 	{
-		g_PointsREQ[client] = true;
+		g_PointsREQ[client] = false;
 	}
 }
 

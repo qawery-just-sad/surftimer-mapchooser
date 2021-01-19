@@ -96,6 +96,7 @@ public void OnPluginStart()
 	g_PlayerOne = AutoExecConfig_CreateConVar("sm_rtv_oneplayer", "1", "If there is  only one player in the server allow him to rtv 1-allow 0-no", _, true, 0.0, true, 1.0);
 
 	RegConsoleCmd("sm_rtv", Command_RTV);
+	RegConsoleCmd("sm_rtvstats", Command_RTVSTATS,"debug");
 	
 	AutoExecConfig_ExecuteFile();
 	AutoExecConfig_CleanFile();
@@ -124,6 +125,51 @@ public void OnMapEnd()
 		g_RankREQ[i] = false;
 		g_PointsREQ[i] = false;
 	}
+}
+
+
+public Action Command_RTVSTATS(int client, int args)
+{
+	if (!client)
+	{
+		return Plugin_Handled;
+	}
+
+	CPrintToChat(client,"Result=%d",surftimer_GetPlayerRank(client) - GetConVarInt(g_Cvar_RankRequirement));
+	CPrintToChat(client,"Rank CVAR= %d",GetConVarInt(g_Cvar_RankRequirement));
+	if (g_RankREQ[client])
+		CPrintToChat(client,"Has RankREQ");
+	else
+		CPrintToChat(client,"No RankREQ");
+
+	CPrintToChat(client,"Rank= %d",surftimer_GetPlayerRank(client));
+
+	if (g_PointsREQ[client])
+		CPrintToChat(client,"Has PointsREQ");
+	else
+		CPrintToChat(client,"No PointsREQ");
+
+	CPrintToChat(client,"Points= %d",surftimer_GetPlayerPoints(client));
+
+	if (VIPBypass(client))
+		CPrintToChat(client,"Has VIP");
+	else
+		CPrintToChat(client,"No VIP");
+
+	if (g_Voters == 1 && GetConVarBool(g_PlayerOne))
+		CPrintToChat(client,"Oneplayer available");
+	else
+		CPrintToChat(client,"Oneplayer not available");
+
+	CPrintToChat(client,"Votes Needed %d",g_VotesNeeded);
+
+	if ((surftimer_GetPlayerRank(client) - GetConVarInt(g_Cvar_RankRequirement)) < 0)
+		CPrintToChat(client,"it's true that you should have rankREQ");
+	else
+		CPrintToChat(client,"THE FUQ?");
+
+	return Plugin_Handled;
+	
 }
 
 public void OnConfigsExecuted()
@@ -261,13 +307,12 @@ void AttemptRTV(int client)
 		return;
 	}
 
-	if (g_PointsREQ[client] == false)
+	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && !g_PointsREQ[client])
 	{
 		CPrintToChat(client, "%t", "Point Requirement", g_szChatPrefix);
 		return;
 	}
-	
-	if (g_RankREQ[client] == false)
+	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && !g_RankREQ[client])
 	{
 		CPrintToChat(client, "%t", "Rank Requirement", g_szChatPrefix, GetConVarInt(g_Cvar_RankRequirement));
 		return;
@@ -362,27 +407,42 @@ stock bool IsValidClient(int client)
 	return false;
 }
 
-stock bool RankCheck(int client)
+void RankCheck(int client)
 {
-	if (GetConVarInt(g_Cvar_RankRequirement) > 0 && (surftimer_GetPlayerRank(client) > GetConVarInt(g_Cvar_RankRequirement) || surftimer_GetPlayerRank(client) == 0) && !VIPBypass(client))
+	if (GetConVarInt(g_Cvar_RankRequirement) > 0)
 	{
-		g_RankREQ[client] = false;
+		CPrintToServer("Player=%N Rank= %d",client,surftimer_GetPlayerRank(client));
+		if ( (surftimer_GetPlayerRank(client) < GetConVarInt(g_Cvar_RankRequirement)) && (surftimer_GetPlayerRank(client) > 0) )
+		{
+			g_RankREQ[client] = true;
+		}
 	}
-	else
+	else if (VIPBypass(client))
 	{
 		g_RankREQ[client] = true;
 	}
+	else
+	{
+		g_RankREQ[client] = false;
+	}
 }
 
-stock bool PointsCheck(int client)
+void PointsCheck(int client)
 {
-	if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && (surftimer_GetPlayerPoints(client) < GetConVarInt(g_Cvar_PointsRequirement)) && !VIPBypass(client))
+	if (GetConVarInt(g_Cvar_PointsRequirement) > 0)
 	{
-		g_PointsREQ[client] = false;
+		if (surftimer_GetPlayerPoints(client) > GetConVarInt(g_Cvar_PointsRequirement))
+		{
+			g_PointsREQ[client] = true;
+		}
+	}
+	else if (VIPBypass(client))
+	{
+		g_PointsREQ[client] = true;
 	}
 	else
 	{
-		g_PointsREQ[client] = true;
+		g_PointsREQ[client] = false;
 	}
 }
 
