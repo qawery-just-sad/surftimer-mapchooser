@@ -122,6 +122,8 @@ Handle g_hDb = null;
 char sql_SelectMapListSpecific[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) AND tier = %s GROUP BY mapname, tier, bonus ORDER BY mapname ASC";
 char sql_SelectMapListRange[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) AND tier >= %s AND tier <= %s GROUP BY mapname, tier, bonus ORDER BY mapname ASC";
 char sql_SelectMapList[] = "SELECT ck_zones.mapname, tier, count(ck_zones.mapname), bonus FROM `ck_zones` INNER JOIN ck_maptier on ck_zones.mapname = ck_maptier.mapname LEFT JOIN ( SELECT mapname as map_2, MAX(ck_zones.zonegroup) as bonus FROM ck_zones GROUP BY mapname ) as a on ck_zones.mapname = a.map_2 WHERE (zonegroup = 0 AND zonetype = 1 or zonetype = 3) GROUP BY mapname, tier, bonus ORDER BY mapname ASC";
+char sql_SelectRank[] = "SELECT COUNT(*) FROM ck_playerrank WHERE style = 0 AND points >= (SELECT points FROM ck_playerrank WHERE steamid = '%s' AND style = 0);";
+char sql_SelectPoints[] = "SELECT points FROM ck_playerrank WHERE steamid = '%s' AND style = 0";
 
 /* Upper bound of how many team there could be */
 #define MAXTEAMS 10
@@ -252,6 +254,10 @@ public void OnConfigsExecuted()
 	// 	}
 	// }
 
+	g_Cvar_RankRequirement = FindConVar("sm_rtv_rank_requirement");
+	g_Cvar_PointsRequirement = FindConVar("sm_rtv_point_requirement");
+	g_Cvar_VIPOverwriteRequirements = FindConVar("sm_rtv_vipoverwrite");
+
 	g_ChatPrefix = FindConVar("ck_chat_prefix");
 	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
 
@@ -319,8 +325,10 @@ public void OnClientPostAdminCheck(int client)
 		return;
 	}
 	g_Voters++;
-	PointsCheck(client);
-	RankCheck(client);
+	// PointsCheck(client);
+	// RankCheck(client);
+	GetPlayerRank(client);
+	GetPlayerPoints(client);
 }
 
 public void OnClientDisconnect(int client)
@@ -1417,9 +1425,12 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 				continue;
 			}
 			
-			if (g_PointsREQ[i] == false || g_RankREQ[i] == false)
+			if (GetConVarInt(g_Cvar_RankRequirement) > 0 || GetConVarInt(g_Cvar_PointsRequirement) > 0)
 			{
-				continue;
+				if (!g_PointsREQ[i] || !g_RankREQ[i])
+				{
+					continue;
+				}
 			}
 
 			players[total++] = i;
@@ -1430,7 +1441,6 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 
 void RankCheck(int client)
 {
-	g_Cvar_RankRequirement = FindConVar("sm_rtv_rank_requirement");
 	if (GetConVarInt(g_Cvar_RankRequirement) > 0)
 	{
 		if ( (surftimer_GetPlayerRank(client) < GetConVarInt(g_Cvar_RankRequirement)) && (surftimer_GetPlayerRank(client) > 0) )
@@ -1450,7 +1460,6 @@ void RankCheck(int client)
 
 void PointsCheck(int client)
 {
-	g_Cvar_PointsRequirement = FindConVar("sm_rtv_point_requirement");
 	if (GetConVarInt(g_Cvar_PointsRequirement) > 0)
 	{
 		if (surftimer_GetPlayerPoints(client) > GetConVarInt(g_Cvar_PointsRequirement))
@@ -1470,7 +1479,6 @@ void PointsCheck(int client)
 
 stock bool VIPBypass(int client)
 {
-	g_Cvar_VIPOverwriteRequirements = FindConVar("sm_rtv_vipoverwrite");
 	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
 	{
 		return true;
@@ -1478,5 +1486,96 @@ stock bool VIPBypass(int client)
 	else
 	{
 		return false;
+	}
+}
+
+
+void GetPlayerRank(client)
+{
+	if (!(GetConVarInt(g_Cvar_RankRequirement) > 0))
+	{
+		return;
+	}
+
+	char szQuery[256], steamid[32];
+	GetClientAuthId(client, AuthId_Steam2, steamid, MAX_NAME_LENGTH, true);
+
+	FormatEx(szQuery, sizeof(szQuery), sql_SelectRank, steamid);
+	SQL_TQuery(g_hDb, GetPlayerRankCallBack, szQuery, client, DBPrio_Normal);
+}
+
+void GetPlayerRankCallBack(Handle owner, Handle hndl, const char[] error, any client)
+{
+	if (hndl == null){
+		LogError("[RTV] SQL Error (GetPlayerRankCallBack): %s", error);
+		return;
+	}
+
+	if(!IsValidClient(client))
+	{
+		return;
+	}
+
+	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
+	{
+		int rank = SQL_FetchInt(hndl,0);
+		if(rank < GetConVarInt(g_Cvar_RankRequirement))
+		{
+			g_RankREQ[client] = true;
+		}
+		else if (VIPBypass(client))
+		{
+			g_RankREQ[client] = true;
+		}
+		else
+		{
+			g_RankREQ[client] = false;
+		}
+
+	}
+}
+
+void GetPlayerPoints(client)
+{
+	if (!(GetConVarInt(g_Cvar_PointsRequirement) > 0))
+	{
+		return;
+	}
+
+	char szQuery[256], steamid[32];
+	GetClientAuthId(client, AuthId_Steam2, steamid, MAX_NAME_LENGTH, true);
+
+	FormatEx(szQuery, sizeof(szQuery), sql_SelectPoints, steamid);
+	SQL_TQuery(g_hDb, GetPlayerPointsCallBack, szQuery, client, DBPrio_Normal);
+}
+
+void GetPlayerPointsCallBack(Handle owner, Handle hndl, const char[] error, any client)
+{
+	if (hndl == null){
+		LogError("[RTV] SQL Error (GetPlayerPointsCallBack): %s", error);
+		return;
+	}
+
+	if(!IsValidClient(client))
+	{
+		return;
+	}
+
+	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
+	{
+		int points = SQL_FetchInt(hndl,0);
+		if(points > GetConVarInt(g_Cvar_PointsRequirement))
+		{
+			g_PointsREQ[client] = true;
+		}
+		else if (VIPBypass(client))
+		{
+			g_PointsREQ[client] = true;
+		}
+		else
+		{
+			g_PointsREQ[client] = false;
+		}
+
 	}
 }

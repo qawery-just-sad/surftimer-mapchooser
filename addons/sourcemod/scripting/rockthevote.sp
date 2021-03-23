@@ -75,10 +75,14 @@ bool g_RankREQ[MAXPLAYERS+1] = {false, ...};
 
 bool g_InChange = false;
 
+Handle g_hDb = null;
+char sql_SelectRank[] = "SELECT COUNT(*) FROM ck_playerrank WHERE style = 0 AND points >= (SELECT points FROM ck_playerrank WHERE steamid = '%s' AND style = 0);";
+char sql_SelectPoints[] = "SELECT points FROM ck_playerrank WHERE steamid = '%s' AND style = 0";
 
 public void OnPluginStart()
 {
 	LoadTranslations("st-rockthevote.phrases");
+	db_setupDatabase();
 
 	AutoExecConfig_SetCreateDirectory(true);
 	AutoExecConfig_SetCreateFile(true);
@@ -110,6 +114,24 @@ public void OnPluginStart()
 		{
 			OnClientPostAdminCheck(i);	
 		}	
+	}
+}
+
+public void db_setupDatabase()
+{
+	char szError[255];
+	g_hDb = SQL_Connect("surftimer", false, szError, 255);
+
+	if (g_hDb == null)
+		SetFailState("[RTV] Unable to connect to database (%s)", szError);
+	
+	char szIdent[8];
+	SQL_ReadDriver(g_hDb, szIdent, 8);
+
+	if (!StrEqual(szIdent, "mysql", false))
+	{
+		SetFailState("[RTV] Invalid database type");
+		return;
 	}
 }
 
@@ -187,8 +209,10 @@ public void OnClientPostAdminCheck(int client)
 		return;
 	}
 
-	PointsCheck(client);
-	RankCheck(client);
+	// PointsCheck(client);
+	// RankCheck(client);
+	GetPlayerRank(client);
+	GetPlayerPoints(client);
 
 	g_Voters++;
 	CalcVotesNeeded();
@@ -468,5 +492,96 @@ stock bool PlayerOne()
 	else
 	{
 		return false;
+	}
+}
+
+
+void GetPlayerRank(client)
+{
+	if (!(GetConVarInt(g_Cvar_RankRequirement) > 0))
+	{
+		return;
+	}
+
+	char szQuery[256], steamid[32];
+	GetClientAuthId(client, AuthId_Steam2, steamid, MAX_NAME_LENGTH, true);
+
+	FormatEx(szQuery, sizeof(szQuery), sql_SelectRank, steamid);
+	SQL_TQuery(g_hDb, GetPlayerRankCallBack, szQuery, client, DBPrio_Normal);
+}
+
+void GetPlayerRankCallBack(Handle owner, Handle hndl, const char[] error, any client)
+{
+	if (hndl == null){
+		LogError("[RTV] SQL Error (GetPlayerRankCallBack): %s", error);
+		return;
+	}
+
+	if(!IsValidClient(client))
+	{
+		return;
+	}
+
+	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
+	{
+		int rank = SQL_FetchInt(hndl,0);
+		if(rank < GetConVarInt(g_Cvar_RankRequirement))
+		{
+			g_RankREQ[client] = true;
+		}
+		else if (VIPBypass(client))
+		{
+			g_RankREQ[client] = true;
+		}
+		else
+		{
+			g_RankREQ[client] = false;
+		}
+
+	}
+}
+
+void GetPlayerPoints(client)
+{
+	if (!(GetConVarInt(g_Cvar_PointsRequirement) > 0))
+	{
+		return;
+	}
+
+	char szQuery[256], steamid[32];
+	GetClientAuthId(client, AuthId_Steam2, steamid, MAX_NAME_LENGTH, true);
+
+	FormatEx(szQuery, sizeof(szQuery), sql_SelectPoints, steamid);
+	SQL_TQuery(g_hDb, GetPlayerPointsCallBack, szQuery, client, DBPrio_Normal);
+}
+
+void GetPlayerPointsCallBack(Handle owner, Handle hndl, const char[] error, any client)
+{
+	if (hndl == null){
+		LogError("[RTV] SQL Error (GetPlayerPointsCallBack): %s", error);
+		return;
+	}
+
+	if(!IsValidClient(client))
+	{
+		return;
+	}
+
+	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
+	{
+		int points = SQL_FetchInt(hndl,0);
+		if(points > GetConVarInt(g_Cvar_PointsRequirement))
+		{
+			g_PointsREQ[client] = true;
+		}
+		else if (VIPBypass(client))
+		{
+			g_PointsREQ[client] = true;
+		}
+		else
+		{
+			g_PointsREQ[client] = false;
+		}
+
 	}
 }
