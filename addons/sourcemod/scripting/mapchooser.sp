@@ -1489,6 +1489,12 @@ stock bool VIPBypass(int client)
 	}
 }
 
+stock bool IsValidClient(int client)
+{
+	if (client >= 1 && client <= MaxClients && IsValidEntity(client) && IsClientConnected(client) && IsClientInGame(client))
+		return true;
+	return false;
+}
 
 void GetPlayerRank(client)
 {
