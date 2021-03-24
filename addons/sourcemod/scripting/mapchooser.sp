@@ -1439,43 +1439,43 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 	menu.DisplayVote(players, total, time, flags);
 }
 
-void RankCheck(int client)
-{
-	if (GetConVarInt(g_Cvar_RankRequirement) > 0)
-	{
-		if ( (surftimer_GetPlayerRank(client) < GetConVarInt(g_Cvar_RankRequirement)) && (surftimer_GetPlayerRank(client) > 0) )
-		{
-			g_RankREQ[client] = true;
-		}
-	}
-	else if (VIPBypass(client))
-	{
-		g_RankREQ[client] = true;
-	}
-	else
-	{
-		g_RankREQ[client] = false;
-	}
-}
+// void RankCheck(int client)
+// {
+// 	if (GetConVarInt(g_Cvar_RankRequirement) > 0)
+// 	{
+// 		if ( (surftimer_GetPlayerRank(client) < GetConVarInt(g_Cvar_RankRequirement)) && (surftimer_GetPlayerRank(client) > 0) )
+// 		{
+// 			g_RankREQ[client] = true;
+// 		}
+// 	}
+// 	else if (VIPBypass(client))
+// 	{
+// 		g_RankREQ[client] = true;
+// 	}
+// 	else
+// 	{
+// 		g_RankREQ[client] = false;
+// 	}
+// }
 
-void PointsCheck(int client)
-{
-	if (GetConVarInt(g_Cvar_PointsRequirement) > 0)
-	{
-		if (surftimer_GetPlayerPoints(client) > GetConVarInt(g_Cvar_PointsRequirement))
-		{
-			g_PointsREQ[client] = true;
-		}
-	}
-	else if (VIPBypass(client))
-	{
-		g_PointsREQ[client] = true;
-	}
-	else
-	{
-		g_PointsREQ[client] = false;
-	}
-}
+// void PointsCheck(int client)
+// {
+// 	if (GetConVarInt(g_Cvar_PointsRequirement) > 0)
+// 	{
+// 		if (surftimer_GetPlayerPoints(client) > GetConVarInt(g_Cvar_PointsRequirement))
+// 		{
+// 			g_PointsREQ[client] = true;
+// 		}
+// 	}
+// 	else if (VIPBypass(client))
+// 	{
+// 		g_PointsREQ[client] = true;
+// 	}
+// 	else
+// 	{
+// 		g_PointsREQ[client] = false;
+// 	}
+// }
 
 stock bool VIPBypass(int client)
 {
@@ -1496,7 +1496,7 @@ stock bool IsValidClient(int client)
 	return false;
 }
 
-void GetPlayerRank(client)
+void GetPlayerRank(int client)
 {
 	if (!(GetConVarInt(g_Cvar_RankRequirement) > 0))
 	{
@@ -1541,7 +1541,7 @@ void GetPlayerRankCallBack(Handle owner, Handle hndl, const char[] error, any cl
 	}
 }
 
-void GetPlayerPoints(client)
+void GetPlayerPoints(int client)
 {
 	if (!(GetConVarInt(g_Cvar_PointsRequirement) > 0))
 	{
