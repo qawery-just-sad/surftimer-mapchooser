@@ -46,7 +46,7 @@ public Plugin myinfo =
 	name = "SurfTimer MapChooser",
 	author = "AlliedModders LLC & SurfTimer Contributors",
 	description = "Automated Map Voting",
-	version = "1.8.2",
+	version = "1.8.3",
 	url = "https://github.com/qawery-just-sad/surftimer-mapchooser"
 };
 
@@ -322,8 +322,6 @@ public void OnClientPostAdminCheck(int client)
 		return;
 	}
 	g_Voters++;
-	// PointsCheck(client);
-	// RankCheck(client);
 	GetPlayerRank(client);
 	GetPlayerPoints(client);
 }
@@ -1438,44 +1436,6 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 	menu.DisplayVote(players, total, time, flags);
 }
 
-// void RankCheck(int client)
-// {
-// 	if (GetConVarInt(g_Cvar_RankRequirement) > 0)
-// 	{
-// 		if ( (surftimer_GetPlayerRank(client) < GetConVarInt(g_Cvar_RankRequirement)) && (surftimer_GetPlayerRank(client) > 0) )
-// 		{
-// 			g_RankREQ[client] = true;
-// 		}
-// 	}
-// 	else if (VIPBypass(client))
-// 	{
-// 		g_RankREQ[client] = true;
-// 	}
-// 	else
-// 	{
-// 		g_RankREQ[client] = false;
-// 	}
-// }
-
-// void PointsCheck(int client)
-// {
-// 	if (GetConVarInt(g_Cvar_PointsRequirement) > 0)
-// 	{
-// 		if (surftimer_GetPlayerPoints(client) > GetConVarInt(g_Cvar_PointsRequirement))
-// 		{
-// 			g_PointsREQ[client] = true;
-// 		}
-// 	}
-// 	else if (VIPBypass(client))
-// 	{
-// 		g_PointsREQ[client] = true;
-// 	}
-// 	else
-// 	{
-// 		g_PointsREQ[client] = false;
-// 	}
-// }
-
 stock bool VIPBypass(int client)
 {
 	g_Cvar_VIPOverwriteRequirements = FindConVar("sm_rtv_vipoverwrite");
@@ -1531,7 +1491,7 @@ void GetPlayerRankCallBack(Handle owner, Handle hndl, const char[] error, any cl
 			g_RankREQ[client] = false;
 			return;
 		}
-		
+
 		if(rank < GetConVarInt(g_Cvar_RankRequirement))
 		{
 			g_RankREQ[client] = true;
