@@ -254,9 +254,6 @@ public void OnConfigsExecuted()
 	// 	}
 	// }
 
-	g_Cvar_RankRequirement = FindConVar("sm_rtv_rank_requirement");
-	g_Cvar_PointsRequirement = FindConVar("sm_rtv_point_requirement");
-	g_Cvar_VIPOverwriteRequirements = FindConVar("sm_rtv_vipoverwrite");
 
 	g_ChatPrefix = FindConVar("ck_chat_prefix");
 	GetConVarString(g_ChatPrefix, g_szChatPrefix, sizeof(g_szChatPrefix));
@@ -1425,12 +1422,14 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 				continue;
 			}
 			
-			if (GetConVarInt(g_Cvar_RankRequirement) > 0 || GetConVarInt(g_Cvar_PointsRequirement) > 0)
+			if (GetConVarInt(g_Cvar_RankRequirement) > 0 && !g_RankREQ[i])
 			{
-				if (!g_PointsREQ[i] || !g_RankREQ[i])
-				{
-					continue;
-				}
+				continue;
+			}
+
+			if (GetConVarInt(g_Cvar_PointsRequirement) > 0 && !g_PointsREQ[i])
+			{
+				continue;
 			}
 
 			players[total++] = i;
@@ -1479,6 +1478,7 @@ public bool DisplayVoteToPros(int time, int flags, Menu menu)
 
 stock bool VIPBypass(int client)
 {
+	g_Cvar_VIPOverwriteRequirements = FindConVar("sm_rtv_vipoverwrite");
 	if (surftimer_IsClientVip(client) && GetConVarBool(g_Cvar_VIPOverwriteRequirements))
 	{
 		return true;
@@ -1498,6 +1498,7 @@ stock bool IsValidClient(int client)
 
 void GetPlayerRank(int client)
 {
+	g_Cvar_RankRequirement = FindConVar("sm_rtv_rank_requirement");
 	if (!(GetConVarInt(g_Cvar_RankRequirement) > 0))
 	{
 		return;
@@ -1525,6 +1526,12 @@ void GetPlayerRankCallBack(Handle owner, Handle hndl, const char[] error, any cl
 	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
 	{
 		int rank = SQL_FetchInt(hndl,0);
+		if(rank <= 0)
+		{
+			g_RankREQ[client] = false;
+			return;
+		}
+		
 		if(rank < GetConVarInt(g_Cvar_RankRequirement))
 		{
 			g_RankREQ[client] = true;
@@ -1543,6 +1550,7 @@ void GetPlayerRankCallBack(Handle owner, Handle hndl, const char[] error, any cl
 
 void GetPlayerPoints(int client)
 {
+	g_Cvar_PointsRequirement = FindConVar("sm_rtv_point_requirement");
 	if (!(GetConVarInt(g_Cvar_PointsRequirement) > 0))
 	{
 		return;
@@ -1570,6 +1578,12 @@ void GetPlayerPointsCallBack(Handle owner, Handle hndl, const char[] error, any 
 	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
 	{
 		int points = SQL_FetchInt(hndl,0);
+		if(points <= 0)
+		{
+			g_PointsREQ[client] = false;
+			return;
+		}
+
 		if(points > GetConVarInt(g_Cvar_PointsRequirement))
 		{
 			g_PointsREQ[client] = true;

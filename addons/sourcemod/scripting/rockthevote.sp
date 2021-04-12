@@ -525,6 +525,12 @@ void GetPlayerRankCallBack(Handle owner, Handle hndl, const char[] error, any cl
 	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
 	{
 		int rank = SQL_FetchInt(hndl,0);
+		if(rank <= 0)
+		{
+			g_RankREQ[client] = false;
+			return;
+		}
+
 		if(rank < GetConVarInt(g_Cvar_RankRequirement))
 		{
 			g_RankREQ[client] = true;
@@ -570,6 +576,12 @@ void GetPlayerPointsCallBack(Handle owner, Handle hndl, const char[] error, any 
 	if (SQL_HasResultSet(hndl) && SQL_FetchRow(hndl))
 	{
 		int points = SQL_FetchInt(hndl,0);
+		if(points <= 0)
+		{
+			g_PointsREQ[client] = false;
+			return;
+		}
+
 		if(points > GetConVarInt(g_Cvar_PointsRequirement))
 		{
 			g_PointsREQ[client] = true;
